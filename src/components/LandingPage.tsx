@@ -77,21 +77,64 @@ export default function LandingPage({ users, onLogin }: LandingPageProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-slate-50 dark:from-slate-950 to-transparent z-10 h-full pointer-events-none"></div>
           <div className="axe-card border rounded-3xl overflow-hidden shadow-2xl p-4 md:p-6 w-full max-w-3xl mx-auto opacity-95">
             {/* Window control circles */}
-            <div className="flex gap-1.5 pb-4 border-b border-slate-200/50 dark:border-slate-800/50">
-              <span className="w-3 h-3 bg-red-400 rounded-full"></span>
-              <span className="w-3 h-3 bg-yellow-400 rounded-full"></span>
-              <span className="w-3 h-3 bg-green-400 rounded-full"></span>
-            </div>
-            {/* Editor mockup visual */}
-            <div className="pt-4 text-left space-y-4">
-              <div className="h-6 w-1/3 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-              <div className="h-4 w-full bg-slate-100 dark:bg-slate-900 rounded-md"></div>
-              <div className="h-4 w-5/6 bg-slate-100 dark:bg-slate-900 rounded-md"></div>
-              <div className="pl-6 space-y-2 pt-2">
-                <div className="h-3 w-1/2 bg-slate-100 dark:bg-slate-900 rounded-md"></div>
-                <div className="h-3 w-2/3 bg-slate-100 dark:bg-slate-900 rounded-md"></div>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200/50 dark:border-slate-800/50">
+              <div className="flex gap-1.5">
+                <span className="w-3 h-3 bg-red-400 rounded-full"></span>
+                <span className="w-3 h-3 bg-yellow-400 rounded-full"></span>
+                <span className="w-3 h-3 bg-green-400 rounded-full"></span>
               </div>
+              <span className="text-[10px] axe-text-muted font-mono tracking-wider uppercase">Interactive Preview</span>
             </div>
+
+            {/* Demo Editor Toolbar */}
+            <div className="flex items-center gap-1 py-2 px-1 border-b border-slate-100 dark:border-slate-800/40 mb-4 text-left">
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  document.execCommand("bold", false);
+                }}
+                className="w-8 h-8 flex items-center justify-center font-bold text-xs rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 cursor-pointer transition-colors"
+                title="Bold"
+              >
+                B
+              </button>
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  document.execCommand("italic", false);
+                }}
+                className="w-8 h-8 flex items-center justify-center italic text-xs rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 cursor-pointer transition-colors"
+                title="Italic"
+              >
+                I
+              </button>
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  document.execCommand("underline", false);
+                }}
+                className="w-8 h-8 flex items-center justify-center underline text-xs rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 cursor-pointer transition-colors"
+                title="Underline"
+              >
+                U
+              </button>
+            </div>
+
+            {/* Interactive contentEditable canvas */}
+            <div
+              contentEditable
+              className="text-left text-xs axe-text-main outline-none min-h-[140px] px-2 leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-title);">Try Axe Docs Right Here!</h3>
+                  <p style="margin-bottom: 0.5rem;">This is a live, fully interactive preview page. Type some text, select it, and click the bold/italic formatting buttons above!</p>
+                  <ul style="list-style-type: disc; margin-left: 1.25rem; margin-bottom: 0.5rem;">
+                    <li>Zero login required to try the basic editor features</li>
+                    <li>Saves are offline-only until you sign in below</li>
+                  </ul>
+                `
+              }}
+            />
           </div>
         </div>
       </section>
@@ -170,6 +213,7 @@ export default function LandingPage({ users, onLogin }: LandingPageProps) {
 
       {/* Login Portal Section */}
       <section
+        id="login-portal"
         ref={loginSectionRef}
         className="max-w-md mx-auto p-6 md:p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-3xl shadow-xl space-y-6 scroll-mt-24 animate-fade-in"
       >

@@ -289,7 +289,7 @@ export default function Home() {
               // Sign In anchor (If on Landing Page)
               <button
                 onClick={() => {
-                  const el = document.getElementById("features");
+                  const el = document.getElementById("login-portal");
                   if (el) el.scrollIntoView({ behavior: "smooth" });
                 }}
                 className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
