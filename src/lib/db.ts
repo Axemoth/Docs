@@ -55,6 +55,19 @@ export function initDb() {
   runMigrationsAndSeed();
 }
 
+// Cleanly closes database connection handles
+export function closeDb() {
+  if (sqliteDb) {
+    sqliteDb.close();
+    sqliteDb = null;
+  }
+  if (pgPool) {
+    pgPool.end();
+    pgPool = null;
+  }
+  isPostgres = false;
+}
+
 // Executes multi-statement SQL scripts (like schema creation)
 export async function exec(sql: string): Promise<void> {
   if (!sqliteDb && !pgPool) {
