@@ -160,21 +160,21 @@ async function runMigrationsAndSeed() {
     const count = countResult[0]?.count ?? 0;
 
     if (Number(count) === 0) {
-      console.log("Database is empty. Seeding mock users (Alice, Bob, Charlie)...");
+      console.log("Database is empty. Seeding mock users (Rushil, Yash, Aditya)...");
       await execute("INSERT INTO users (id, username, email) VALUES (?, ?, ?)", [
-        "user_alice",
-        "alice",
-        "alice@example.com",
+        "user_rushil",
+        "rushil",
+        "rushil.gorasia@gmail.com",
       ]);
       await execute("INSERT INTO users (id, username, email) VALUES (?, ?, ?)", [
-        "user_bob",
-        "bob",
-        "bob@example.com",
+        "user_yash",
+        "yash",
+        "yash@example.com",
       ]);
       await execute("INSERT INTO users (id, username, email) VALUES (?, ?, ?)", [
-        "user_charlie",
-        "charlie",
-        "charlie@example.com",
+        "user_aditya",
+        "aditya",
+        "aditya@example.com",
       ]);
       console.log("Database seeded successfully.");
     }

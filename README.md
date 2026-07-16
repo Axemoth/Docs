@@ -61,9 +61,9 @@ npm test
 
 Authentication is mocked. You can switch between users in the top-right corner of the header. The application is seeded with the following three accounts:
 
-* **Alice:** Username: `alice` | Email: `alice@example.com`
-* **Bob:** Username: `bob` | Email: `bob@example.com`
-* **Charlie:** Username: `charlie` | Email: `charlie@example.com`
+* **Rushil:** Username: `rushil` | Email: `rushil.gorasia@gmail.com`
+* **Yash:** Username: `yash` | Email: `yash@example.com`
+* **Aditya:** Username: `aditya` | Email: `aditya@example.com`
 
 ---
 

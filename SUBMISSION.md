@@ -27,9 +27,9 @@ This file contains all the details required for evaluating the Axe Docs collabor
 
 ### B. Seeded User Credentials (for Switch User)
 Select any of these users from the switcher in the header to test sharing:
-1. **Alice** (ID: `user_alice` / Email: `alice@example.com`)
-2. **Bob** (ID: `user_bob` / Email: `bob@example.com`)
-3. **Charlie** (ID: `user_charlie` / Email: `charlie@example.com`)
+1. **Rushil** (ID: `user_rushil` / Email: `rushil.gorasia@gmail.com`)
+2. **Yash** (ID: `user_yash` / Email: `yash@example.com`)
+3. **Aditya** (ID: `user_aditya` / Email: `aditya@example.com`)
 
 ---
 
@@ -40,8 +40,8 @@ Select any of these users from the switcher in the header to test sharing:
 * **Rich-Text Toolbar:** Bold, Italic, Underline, H1, H2, Paragraph formatting, and Bulleted/Numbered lists.
 * **Autosave:** Automatically debounce-saves changes to the database 1.2 seconds after typing.
 * **Mock Auth & User Switcher:** Change active sessions immediately in the header to view other users' list of owned and shared documents.
-* **Sharing Control Modal:** Owners can share documents by username (e.g. `bob`, `charlie`) and grant `Can View` (Read-only) or `Can Edit` (Editor) rights. It prevents owners from sharing with themselves and allows revoking access.
-* **Access Control:** The backend API blocks Bob from editing Alice's document if he is shared as Read-Only. Unauthorized users get an Access Denied (403) screen if they attempt to load the document directly.
+* **Sharing Control Modal:** Owners can share documents by username (e.g. `yash`, `aditya`) and grant `Can View` (Read-only) or `Can Edit` (Editor) rights. It prevents owners from sharing with themselves and allows revoking access.
+* **Access Control:** The backend API blocks Yash from editing Rushil's document if he is shared as Read-Only. Unauthorized users get an Access Denied (403) screen if they attempt to load the document directly.
 * **File Upload & Import:** Upload `.txt` and `.md` files from the Dashboard (creates a new document with the file name and content) or inside the Editor (appends text directly to the active draft).
 * **Docker:** Containerized setup maps port 3000 and exposes database environment variables.
 * **Automated Integration Tests:** Test suite verifying all 10 endpoints and permission assertions.

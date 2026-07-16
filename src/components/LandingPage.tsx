@@ -23,11 +23,11 @@ export default function LandingPage({ users, onLogin }: LandingPageProps) {
   // Get avatar colors dynamically based on username
   const getAvatarGradient = (username: string) => {
     switch (username) {
-      case "alice":
+      case "rushil":
         return "from-purple-500 to-indigo-600 shadow-purple-500/20";
-      case "bob":
+      case "yash":
         return "from-amber-500 to-orange-600 shadow-orange-500/20";
-      case "charlie":
+      case "aditya":
         return "from-teal-500 to-emerald-600 shadow-emerald-500/20";
       default:
         return "from-blue-500 to-indigo-600 shadow-blue-500/20";

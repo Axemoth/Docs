@@ -37,9 +37,9 @@ To eliminate the need for manual database setup, the database manager automatica
 3. `shares`: Manages access permissions (`id`, `document_id`, `user_id`, `access_level` ['read' | 'write']).
 
 If the `users` table is empty, it automatically seeds three mock accounts:
-* **Alice** (`user_alice` / `alice@example.com`)
-* **Bob** (`user_bob` / `bob@example.com`)
-* **Charlie** (`user_charlie` / `charlie@example.com`)
+* **Rushil** (`user_rushil` / `rushil.gorasia@gmail.com`)
+* **Yash** (`user_yash` / `yash@example.com`)
+* **Aditya** (`user_aditya` / `aditya@example.com`)
 
 ### C. Rich-Text Editor & Debounced Autosave
 Older React editor packages (like React-Quill) have peer dependency conflicts with React 19. We bypassed this by building a custom editor using a standard `contentEditable` div.
@@ -58,5 +58,5 @@ Older React editor packages (like React-Quill) have peer dependency conflicts wi
 ## 3. Prioritized Architectural Decisions
 
 1. **PORTABILITY FIRST:** We rejected the use of local-only SQLite packages (which require C++ build tools) to guarantee that any reviewer running Windows can compile the project immediately.
-2. **SECURITY LOCKS:** We prioritized backend-level security. Bob cannot edit Alice's read-only document by altering client-side code, because the `/api/documents/[id]` PATCH handler validates Bob's access level in the database before executing SQL updates.
+2. **SECURITY LOCKS:** We prioritized backend-level security. Yash cannot edit Rushil's read-only document by altering client-side code, because the `/api/documents/[id]` PATCH handler validates Yash's access level in the database before executing SQL updates.
 3. **USER EXPERIENCE:** We integrated direct file uploads into the dashboard and editor toolbars, enabling users to parse `.txt` and `.md` files via `FileReader` and immediately merge them into active drafts.
