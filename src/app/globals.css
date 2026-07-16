@@ -213,6 +213,59 @@ body {
   animation: fadeIn 0.25s ease-out forwards;
 }
 
+/* Custom print media styles for PDF export */
+@media print {
+  /* Hide page elements, headers, sidebars, toolbars and modals */
+  header,
+  footer,
+  .editor-toolbar,
+  button,
+  select,
+  .axe-header,
+  .axe-modal,
+  input[type="file"],
+  [title="Back to Documents"] {
+    display: none !important;
+  }
+  
+  /* Reset document main padding and background */
+  html, body, main {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  
+  /* Reset editor sheet margins and styles for printer */
+  .axe-editor-workspace {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  .axe-editor-paper {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: transparent !important;
+    color: #000000 !important;
+  }
+  
+  .editor-content {
+    min-height: 0 !important;
+    color: #000000 !important;
+  }
+}
+
 /* Custom scrollbars for a premium dashboard feel */
 ::-webkit-scrollbar {
   width: 8px;

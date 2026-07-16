@@ -28,6 +28,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
   const [savingStatus, setSavingStatus] = useState<"saved" | "saving" | "error" | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [notice, setNotice] = useState("");
+  const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -183,6 +184,53 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    setIsExportDropdownOpen(false);
+  };
+
+  // Client-side Word Document exporter (.doc / .docx compatible)
+  const exportToDocx = () => {
+    if (!doc) return;
+    const html = editorRef.current?.innerHTML || doc.content;
+
+    const docHeader = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+          "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+          "xmlns='http://www.w3.org/TR/REC-html40'>" +
+          "<head><meta charset='utf-8'><title>" + title + "</title>" +
+          "<style>" +
+          "body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; }" +
+          "h1 { font-size: 20pt; font-weight: bold; margin-top: 12pt; margin-bottom: 6pt; }" +
+          "h2 { font-size: 16pt; font-weight: bold; margin-top: 12pt; margin-bottom: 6pt; }" +
+          "p { margin-bottom: 8pt; }" +
+          "ul, ol { margin-left: 20pt; margin-bottom: 8pt; }" +
+          "li { margin-bottom: 4pt; }" +
+          "b, strong { font-weight: bold; }" +
+          "i, em { font-style: italic; }" +
+          "u { text-decoration: underline; }" +
+          "</style>" +
+          "</head><body>";
+    const docFooter = "</body></html>";
+
+    const sourceHtml = docHeader + html + docFooter;
+
+    const blob = new Blob(['\ufeff' + sourceHtml], {
+      type: 'application/msword'
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${title || "Untitled Document"}.doc`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setIsExportDropdownOpen(false);
+  };
+
+  // Client-side PDF exporter (window print media handler)
+  const exportToPdf = () => {
+    window.print();
+    setIsExportDropdownOpen(false);
   };
 
   // 4. File import handler
@@ -346,17 +394,45 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             className="hidden"
           />
 
-          {/* Export to Markdown Button */}
-          <button
-            onClick={exportToMarkdown}
-            className="px-3.5 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer text-slate-700 dark:text-slate-300"
-            title="Export to Markdown (.md)"
-          >
-            <svg className="w-4.5 h-4.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            <span className="hidden sm:inline">Export</span>
-          </button>
+          {/* Export Dropdown Selector */}
+          <div className="relative">
+            <button
+              onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+              className="px-3 py-2 border border-slate-205 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer text-slate-700 dark:text-slate-300"
+              title="Export Document"
+            >
+              <svg className="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span className="hidden sm:inline">Export</span>
+              <svg className="w-3 h-3 text-slate-450 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {isExportDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg z-50 overflow-hidden py-1">
+                <button
+                  onClick={exportToMarkdown}
+                  className="w-full text-left px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 font-semibold cursor-pointer transition-colors"
+                >
+                  Export as Markdown (.md)
+                </button>
+                <button
+                  onClick={exportToDocx}
+                  className="w-full text-left px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 font-semibold cursor-pointer transition-colors"
+                >
+                  Export as Word (.doc)
+                </button>
+                <button
+                  onClick={exportToPdf}
+                  className="w-full text-left px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 font-semibold cursor-pointer transition-colors"
+                >
+                  Export as PDF (.pdf)
+                </button>
+              </div>
+            )}
+          </div>
 
           {doc.accessLevel === "owner" && (
             <>
