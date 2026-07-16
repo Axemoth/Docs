@@ -192,24 +192,24 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <span className="text-slate-500 text-sm font-medium">Opening document...</span>
+        <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">Opening document...</span>
       </div>
     );
   }
 
   if (error || !doc) {
     return (
-      <div className="max-w-md mx-auto my-12 p-6 bg-white rounded-2xl border border-slate-100 shadow-sm text-center space-y-4 animate-fade-in">
-        <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
+      <div className="max-w-md mx-auto my-12 p-6 axe-card border rounded-2xl shadow-sm text-center space-y-4 animate-fade-in">
+        <div className="w-12 h-12 bg-red-50 dark:bg-red-950/20 text-red-500 rounded-full flex items-center justify-center mx-auto">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 className="font-semibold text-slate-800 text-lg">Document Unavailable</h3>
-        <p className="text-sm text-slate-500">{error || "This document could not be loaded."}</p>
+        <h3 className="font-semibold axe-text-title text-lg">Document Unavailable</h3>
+        <p className="text-sm axe-text-muted">{error || "This document could not be loaded."}</p>
         <button
           onClick={onBack}
-          className="px-4 py-2 bg-slate-150 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+          className="px-4 py-2 axe-btn-secondary border border-transparent dark:border-slate-800 rounded-lg text-sm font-medium transition-colors cursor-pointer"
         >
           Return to Dashboard
         </button>
@@ -222,11 +222,11 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
   return (
     <div className="space-y-4 animate-fade-in">
       {/* Editor Navbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800/80">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-white border border-transparent hover:border-slate-200/60 rounded-xl transition-all cursor-pointer"
+            className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-350 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl transition-all cursor-pointer"
             title="Back to Documents"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,14 +239,14 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
               value={title}
               onChange={handleTitleChange}
               disabled={isReadOnly}
-              className="font-bold text-slate-800 text-xl bg-transparent border-b border-transparent hover:border-slate-350 focus:border-blue-500 focus:outline-hidden px-1 py-0.5 rounded-sm transition-all max-w-sm"
+              className="font-bold axe-text-title text-xl bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-700 focus:border-blue-500 focus:outline-hidden px-1 py-0.5 rounded-sm transition-all max-w-sm"
               placeholder="Enter document title..."
             />
             <div className="flex items-center gap-1.5 px-1 mt-0.5">
-              <span className="text-2xs text-slate-400">
-                Owned by <span className="font-medium text-slate-500">{doc.ownerUsername}</span>
+              <span className="text-2xs axe-text-muted">
+                Owned by <span className="font-semibold axe-text-main">{doc.ownerUsername}</span>
               </span>
-              <span className="text-slate-300 text-xs">•</span>
+              <span className="text-slate-300 dark:text-slate-700 text-xs">•</span>
               {savingStatus === "saving" && (
                 <span className="text-2xs text-blue-500 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
@@ -269,7 +269,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
                   Offline - Save failed
                 </span>
               )}
-              {!savingStatus && <span className="text-2xs text-slate-400">Synced</span>}
+              {!savingStatus && <span className="text-2xs axe-text-muted">Synced</span>}
             </div>
           </div>
         </div>
@@ -297,7 +297,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
               </button>
               <button
                 onClick={handleDeleteDoc}
-                className="px-3.5 py-2 border border-slate-200 hover:border-red-200 hover:bg-red-50 text-slate-500 hover:text-red-650 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                className="px-3.5 py-2 border border-slate-200 dark:border-slate-800 hover:border-red-200 dark:hover:border-red-950/60 hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-500 hover:text-red-650 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
                 title="Delete document"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,13 +308,13 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           )}
 
           {doc.accessLevel === "write" && (
-            <span className="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs font-semibold uppercase tracking-wider">
+            <span className="px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 rounded-lg text-xs font-semibold uppercase tracking-wider">
               Can Edit
             </span>
           )}
 
           {isReadOnly && (
-            <span className="px-3 py-1 bg-teal-50 text-teal-700 border border-teal-200 rounded-lg text-xs font-semibold uppercase tracking-wider">
+            <span className="px-3 py-1 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-900/50 rounded-lg text-xs font-semibold uppercase tracking-wider">
               Read Only
             </span>
           )}
@@ -323,7 +323,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
 
       {/* Read Only Locked Warning */}
       {isReadOnly && (
-        <div className="p-3 bg-amber-50 text-amber-800 rounded-2xl border border-amber-200/60 text-sm flex items-center gap-2.5 shadow-2xs">
+        <div className="p-3 bg-amber-50 dark:bg-amber-900/25 text-amber-800 dark:text-amber-300 rounded-2xl border border-amber-200/60 dark:border-amber-900/40 text-sm flex items-center gap-2.5 shadow-2xs">
           <svg className="w-5 h-5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
           </svg>
@@ -334,14 +334,14 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
       )}
 
       {/* Editor Toolbar */}
-      <div className="flex flex-wrap items-center gap-1.5 p-2 bg-white border border-slate-200 rounded-2xl shadow-2xs">
+      <div className="flex flex-wrap items-center gap-1.5 p-2 axe-card border rounded-2xl">
         <button
           onMouseDown={(e) => {
             e.preventDefault();
             handleFormat("bold");
           }}
           disabled={isReadOnly}
-          className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg font-bold transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
+          className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg font-bold transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
           title="Bold"
         >
           B
@@ -352,7 +352,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             handleFormat("italic");
           }}
           disabled={isReadOnly}
-          className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg italic transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
+          className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg italic transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
           title="Italic"
         >
           I
@@ -363,13 +363,13 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             handleFormat("underline");
           }}
           disabled={isReadOnly}
-          className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg underline transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
+          className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg underline transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
           title="Underline"
         >
           U
         </button>
 
-        <span className="w-px h-5 bg-slate-200 mx-1"></span>
+        <span className="w-px h-5 bg-slate-200 dark:bg-slate-800 mx-1"></span>
 
         <button
           onMouseDown={(e) => {
@@ -377,7 +377,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             handleFormat("formatBlock", "<h1>");
           }}
           disabled={isReadOnly}
-          className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+          className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-sm font-semibold transition-colors cursor-pointer"
           title="Heading 1"
         >
           H1
@@ -388,7 +388,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             handleFormat("formatBlock", "<h2>");
           }}
           disabled={isReadOnly}
-          className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+          className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-sm font-semibold transition-colors cursor-pointer"
           title="Heading 2"
         >
           H2
@@ -399,13 +399,13 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             handleFormat("formatBlock", "<p>");
           }}
           disabled={isReadOnly}
-          className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+          className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-sm font-semibold transition-colors cursor-pointer"
           title="Normal Paragraph"
         >
           Text
         </button>
 
-        <span className="w-px h-5 bg-slate-200 mx-1"></span>
+        <span className="w-px h-5 bg-slate-200 dark:bg-slate-800 mx-1"></span>
 
         <button
           onMouseDown={(e) => {
@@ -413,7 +413,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             handleFormat("insertUnorderedList");
           }}
           disabled={isReadOnly}
-          className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
+          className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
           title="Bullet List"
         >
           • List
@@ -424,18 +424,18 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             handleFormat("insertOrderedList");
           }}
           disabled={isReadOnly}
-          className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
+          className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
           title="Numbered List"
         >
           1. List
         </button>
 
-        <span className="w-px h-5 bg-slate-200 mx-1"></span>
+        <span className="w-px h-5 bg-slate-200 dark:bg-slate-800 mx-1"></span>
 
         <button
           onClick={handleFileImportClick}
           disabled={isReadOnly}
-          className="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+          className="px-3 py-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
           title="Import text/markdown file into current draft"
         >
           <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -446,13 +446,13 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
       </div>
 
       {/* Editor Sheet Canvas */}
-      <div className="bg-slate-100 border border-slate-200 rounded-2xl p-6 md:p-12 overflow-x-auto min-h-[900px] flex justify-center">
-        <div className="w-full max-w-3xl bg-white border border-slate-200/60 shadow-md min-h-[850px] p-12 md:p-16 rounded-xs select-text">
+      <div className="axe-editor-workspace border border-slate-200/60 dark:border-slate-850 rounded-2xl p-6 md:p-12 overflow-x-auto min-h-[900px] flex justify-center">
+        <div className="w-full max-w-3xl axe-editor-paper border min-h-[850px] p-12 md:p-16 rounded-xs select-text">
           <div
             ref={editorRef}
             contentEditable={!isReadOnly}
             onInput={handleEditorInput}
-            className="editor-content outline-hidden"
+            className="editor-content"
             data-placeholder="Start typing your document..."
             style={{ userSelect: "text", WebkitUserSelect: "text" }}
           ></div>

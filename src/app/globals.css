@@ -3,11 +3,136 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+  
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --header-border: #e2e8f0;
+  
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-hover-border: #cbd5e1;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  
+  --text-main: #334155;
+  --text-title: #0f172a;
+  --text-muted: #64748b;
+  
+  --editor-workspace: #f1f5f9;
+  --editor-paper: #ffffff;
+  --editor-border: rgba(226, 232, 240, 0.8);
+  --editor-text: #1e293b;
+  --editor-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  
+  --btn-secondary: #f1f5f9;
+  --btn-secondary-hover: #e2e8f0;
+  --btn-secondary-text: #334155;
+  
+  --modal-bg: #ffffff;
+  --modal-header-bg: #f8fafc;
+}
+
+body.dark {
+  --background: #090d16;
+  --foreground: #f8fafc;
+  
+  --header-bg: rgba(13, 20, 35, 0.85);
+  --header-border: #1e293b;
+  
+  --card-bg: #0f172a;
+  --card-border: #1e293b;
+  --card-hover-border: #334155;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  
+  --text-main: #cbd5e1;
+  --text-title: #f8fafc;
+  --text-muted: #94a3b8;
+  
+  --editor-workspace: #070a0f;
+  --editor-paper: #0f172a;
+  --editor-border: rgba(30, 41, 59, 0.8);
+  --editor-text: #e2e8f0;
+  --editor-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  
+  --btn-secondary: #1e293b;
+  --btn-secondary-hover: #334155;
+  --btn-secondary-text: #cbd5e1;
+  
+  --modal-bg: #0f172a;
+  --modal-header-bg: #0b111e;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Theme-adaptive semantic CSS classes */
+.axe-header {
+  background-color: var(--header-bg);
+  border-color: var(--header-border);
+  transition: all 0.3s ease;
+}
+
+.axe-card {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  box-shadow: var(--card-shadow);
+  color: var(--text-main);
+  transition: all 0.3s ease;
+}
+
+.axe-card:hover {
+  border-color: var(--card-hover-border);
+}
+
+.axe-text-title {
+  color: var(--text-title);
+  transition: color 0.3s ease;
+}
+
+.axe-text-main {
+  color: var(--text-main);
+  transition: color 0.3s ease;
+}
+
+.axe-text-muted {
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.axe-editor-workspace {
+  background-color: var(--editor-workspace);
+  transition: all 0.3s ease;
+}
+
+.axe-editor-paper {
+  background-color: var(--editor-paper);
+  border-color: var(--editor-border);
+  box-shadow: var(--editor-shadow);
+  color: var(--editor-text);
+  transition: all 0.3s ease;
+}
+
+.axe-btn-secondary {
+  background-color: var(--btn-secondary);
+  color: var(--btn-secondary-text);
+  transition: all 0.3s ease;
+}
+
+.axe-btn-secondary:hover {
+  background-color: var(--btn-secondary-hover);
+}
+
+.axe-modal {
+  background-color: var(--modal-bg);
+  border-color: var(--header-border);
+  transition: all 0.3s ease;
+}
+
+.axe-modal-header {
+  background-color: var(--modal-header-bg);
+  border-color: var(--header-border);
+  transition: all 0.3s ease;
 }
 
 /* Styles for our custom rich-text contentEditable editor */
@@ -15,14 +140,15 @@ body {
   outline: none;
   min-height: 800px;
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  color: #1e293b;
+  color: var(--editor-text);
   font-size: 16px;
   line-height: 1.6;
+  transition: color 0.3s ease;
 }
 
 .editor-content:empty::before {
   content: attr(data-placeholder);
-  color: #94a3b8;
+  color: var(--text-muted);
   pointer-events: none;
 }
 
@@ -31,8 +157,9 @@ body {
   font-weight: 800;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
-  color: #0f172a;
+  color: var(--text-title);
   line-height: 1.25;
+  transition: color 0.3s ease;
 }
 
 .editor-content h2 {
@@ -40,8 +167,9 @@ body {
   font-weight: 700;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
-  color: #1e293b;
+  color: var(--text-title);
   line-height: 1.35;
+  transition: color 0.3s ease;
 }
 
 .editor-content p {
@@ -91,14 +219,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--btn-secondary-hover);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-muted);
 }
