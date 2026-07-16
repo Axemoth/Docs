@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Axe Docs
 
-## Getting Started
+Axe Docs is a lightweight, high-performance collaborative document editor inspired by Google Docs, built using Next.js, React 19, Tailwind CSS v4, and SQLite/PostgreSQL.
 
-First, run the development server:
+It allows creating documents, formatting text (Bold, Italic, Underline, Headers, Lists), autosaving modifications, uploading and importing text/markdown files, switching sessions (mock auth), and sharing documents (view vs edit permissions) with access control.
 
+---
+
+## 1. Quick Start (Running Locally)
+
+You can run Axe Docs locally using Node.js. It defaults to a zero-configuration SQLite database (`database.db`), which will be created automatically in your root folder.
+
+### Prerequisites
+* **Node.js:** Version 22.5.0 or higher is required (uses the native `node:sqlite` module to avoid compiler issues).
+* **Package Manager:** npm (installed automatically with Node).
+
+### Installation & Execution
+1. Install the dependencies:
+   ```bash
+   npm install
+   ```
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
+3. Open your browser and navigate to:
+   **[http://localhost:3000](http://localhost:3000)**
+
+---
+
+## 2. Running via Docker
+
+If you prefer to run the application containerized, we have provided a multi-stage `Dockerfile` and a `docker-compose.yml` file.
+
+### Execution
+1. Start the container in detached mode:
+   ```bash
+   docker-compose up --build
+   ```
+2. Open your browser and navigate to:
+   **[http://localhost:3000](http://localhost:3000)**
+3. To stop the container, run:
+   ```bash
+   docker-compose down
+   ```
+
+---
+
+## 3. Running Automated Tests
+
+We wrote an automated integration test suite that tests document creation, permissions, sharing logic, and edit restrictions. It runs against a separate test database (`database-test.db`) and automatically cleans up afterwards.
+
+To execute the tests, run:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm test
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 4. Seeding & Mock Accounts (Mock Auth)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Authentication is mocked. You can switch between users in the top-right corner of the header. The application is seeded with the following three accounts:
 
-## Learn More
+* **Alice:** Username: `alice` | Email: `alice@example.com`
+* **Bob:** Username: `bob` | Email: `bob@example.com`
+* **Charlie:** Username: `charlie` | Email: `charlie@example.com`
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 5. Live Production Deployment (Vercel + Neon Postgres)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Axe Docs automatically detects the presence of a PostgreSQL connection string. If you supply a `DATABASE_URL` environment variable, it swaps database drivers and runs migrations in the cloud.
 
-## Deploy on Vercel
+### Step 1: Provision Neon DB (Already Completed)
+We have provisioned a cloud database on Neon. The tables are migrated and seeded.
+* **PostgreSQL Connection String:**
+  `postgresql://neondb_owner:npg_ZERLejS9umB0@ep-purple-flower-a66deeve-pooler.us-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Step 2: Deploy to Vercel
+1. Initialize a Git repository on your GitHub account.
+2. Push this project to your repository.
+3. Import the repository into your Vercel Dashboard.
+4. Under **Environment Variables**, add:
+   * **Key:** `DATABASE_URL`
+   * **Value:** `postgresql://neondb_owner:npg_ZERLejS9umB0@ep-purple-flower-a66deeve-pooler.us-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
+5. Click **Deploy**. Vercel will build the standalone Next.js application, and it will immediately connect to your persistent Postgres cloud database.
