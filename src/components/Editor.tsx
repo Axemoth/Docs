@@ -42,6 +42,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
         headers: {
           "x-user-id": currentUserId,
         },
+        cache: "no-store",
       });
 
       if (!res.ok) {
@@ -239,6 +240,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isReadOnly) return;
     const file = e.target.files?.[0];
     if (!file) return;
 

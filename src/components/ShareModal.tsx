@@ -39,6 +39,7 @@ export default function ShareModal({
         headers: {
           "x-user-id": currentUserId,
         },
+        cache: "no-store",
       });
 
       if (!res.ok) {

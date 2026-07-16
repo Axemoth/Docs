@@ -42,6 +42,7 @@ export default function Home() {
         headers: {
           "x-user-id": user.id,
         },
+        cache: "no-store",
       });
       if (!res.ok) throw new Error("Failed to fetch documents");
       const docs: DocumentItem[] = await res.json();
@@ -63,7 +64,7 @@ export default function Home() {
     let active = true;
     const loadInitialData = async () => {
       try {
-        const res = await fetch("/api/users");
+        const res = await fetch("/api/users", { cache: "no-store" });
         if (!res.ok) throw new Error("Could not load demo accounts");
         const usersList: User[] = await res.json();
         if (!active) return;
@@ -152,7 +153,7 @@ export default function Home() {
       .replace(/\"/g, "&quot;")
       .replace(/'/g, "&#39;");
 
-  const handleImportDocument = async (title: string, text: string) => {
+  const handleImportDocument = async (title: string, text: string, isHtml = false) => {
     if (!currentUser) return;
     try {
       setLoading(true);
@@ -163,16 +164,19 @@ export default function Home() {
         headers: {
           "x-user-id": currentUser.id,
         },
+        cache: "no-store",
       });
 
       if (!createRes.ok) throw new Error("Import failed: Couldn't create draft");
       const draftDoc = await createRes.json();
 
-      // Convert plain text into HTML paragraphs
-      const htmlContent = text
-        .split("\n\n")
-        .map((para) => `<p>${escapeTextAsHtml(para).replace(/\n/g, "<br/>")}</p>`)
-        .join("");
+      // If it's already HTML (like from docx), use it directly. Otherwise, convert plain text to HTML.
+      const htmlContent = isHtml
+        ? text
+        : text
+            .split("\n\n")
+            .map((para) => `<p>${escapeTextAsHtml(para).replace(/\n/g, "<br/>")}</p>`)
+            .join("");
 
       // Update draft with file name and parsed HTML body
       const updateRes = await fetch(`/api/documents/${draftDoc.id}`, {

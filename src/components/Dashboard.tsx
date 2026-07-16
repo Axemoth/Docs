@@ -17,7 +17,7 @@ interface DashboardProps {
   currentUserId: string;
   onOpenDocument: (id: string) => void;
   onCreateDocument: () => void;
-  onImportDocument: (title: string, content: string) => Promise<void>;
+  onImportDocument: (title: string, content: string, isHtml?: boolean) => Promise<void>;
   loading: boolean;
 }
 
@@ -87,7 +87,7 @@ export default function Dashboard({
             const arrayBuffer = event.target?.result as ArrayBuffer;
             const result = await mammoth.convertToHtml({ arrayBuffer });
             const html = result.value;
-            void onImportDocument(title, html || "");
+            void onImportDocument(title, html || "", true);
           } catch (err) {
             setImportMessage("Failed to parse Word document.");
           }
