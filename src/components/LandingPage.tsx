@@ -218,9 +218,10 @@ export default function LandingPage({ users, onLogin }: LandingPageProps) {
         className="max-w-md mx-auto p-6 md:p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-3xl shadow-xl space-y-6 scroll-mt-24 animate-fade-in"
       >
         <div className="text-center space-y-2">
-          <h3 className="text-xl font-bold axe-text-title">Access your Workspace</h3>
+          <span className="inline-flex rounded-full bg-amber-50 dark:bg-amber-900/30 px-2.5 py-1 text-2xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">Demo mode</span>
+          <h3 className="text-xl font-bold axe-text-title">Choose an evaluation account</h3>
           <p className="text-xs axe-text-muted leading-normal px-2">
-            Select one of our pre-configured evaluation accounts to sign in immediately and start editing documents.
+            Select a seeded account to test the owner, editor, and viewer sharing flows. This is mocked authentication for the assignment.
           </p>
         </div>
 

@@ -22,7 +22,7 @@ This file contains all the details required for evaluating the Axe Docs collabor
 
 ### A. Live PostgreSQL Database
 * **Database Provider:** Neon DB
-* **Connection String:** `postgresql://neondb_owner:npg_ZERLejS9umB0@ep-purple-flower-a66deeve-pooler.us-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
+* **Connection String:** Configured through the deployment environment (`DATABASE_URL`); credentials are not stored in the repository.
 * **Status:** Fully migrated and seeded with mock accounts.
 
 ### B. Seeded User Credentials (for Switch User)

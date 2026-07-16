@@ -17,7 +17,7 @@ interface DashboardProps {
   currentUserId: string;
   onOpenDocument: (id: string) => void;
   onCreateDocument: () => void;
-  onImportDocument: (title: string, content: string) => void;
+  onImportDocument: (title: string, content: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -30,6 +30,7 @@ export default function Dashboard({
   loading,
 }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<"all" | "owned" | "shared">("all");
+  const [importMessage, setImportMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const myDocs = documents.filter((doc) => doc.ownerId === currentUserId);
@@ -64,7 +65,13 @@ export default function Dashboard({
 
     const fileType = file.name.split(".").pop()?.toLowerCase();
     if (fileType !== "txt" && fileType !== "md") {
-      alert("Unsupported file type! Please upload a .txt or .md file.");
+      setImportMessage("Only .txt and .md files can be imported.");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > 200_000) {
+      setImportMessage("Please choose a file smaller than 200 KB.");
+      e.target.value = "";
       return;
     }
 
@@ -74,8 +81,9 @@ export default function Dashboard({
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
-      onImportDocument(title, text || "");
+      void onImportDocument(title, text || "");
     };
+    reader.onerror = () => setImportMessage("The selected file could not be read.");
     reader.readAsText(file);
 
     // Reset input
@@ -88,8 +96,16 @@ export default function Dashboard({
       <div className="space-y-3">
         <h3 className="text-xs font-semibold axe-text-muted uppercase tracking-wider">Start a new document</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".txt,.md"
+            className="hidden"
+          />
           {/* Create Blank Card */}
           <button
+            type="button"
             onClick={onCreateDocument}
             className="flex items-center gap-4 p-5 axe-card border hover:border-blue-500 rounded-2xl cursor-pointer text-left group"
           >
@@ -106,16 +122,10 @@ export default function Dashboard({
 
           {/* Import File Card */}
           <button
+            type="button"
             onClick={handleImportClick}
             className="flex items-center gap-4 p-5 axe-card border hover:border-emerald-500 rounded-2xl cursor-pointer text-left group"
           >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept=".txt,.md"
-              className="hidden"
-            />
             <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -127,6 +137,13 @@ export default function Dashboard({
             </div>
           </button>
         </div>
+        <p className="text-xs axe-text-muted">Supports plain text and Markdown files up to 200 KB.</p>
+        {importMessage && (
+          <div role="status" className="text-sm text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/25 border border-blue-100 dark:border-blue-900/40 rounded-xl px-3 py-2 flex justify-between gap-3">
+            <span>{importMessage}</span>
+            <button type="button" onClick={() => setImportMessage("")} className="font-semibold hover:underline" aria-label="Dismiss import message">Dismiss</button>
+          </div>
+        )}
       </div>
 
       {/* Documents Section */}
@@ -194,10 +211,12 @@ export default function Dashboard({
               const isOwner = doc.ownerId === currentUserId;
 
               return (
-                <div
+                <button
+                  type="button"
                   key={doc.id}
                   onClick={() => onOpenDocument(doc.id)}
-                  className="flex flex-col justify-between p-5 axe-card border hover:border-slate-350 dark:hover:border-slate-700 rounded-2xl cursor-pointer group"
+                  className="flex flex-col justify-between p-5 axe-card border hover:border-slate-350 dark:hover:border-slate-700 rounded-2xl cursor-pointer group text-left focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  aria-label={`Open ${doc.title}`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -248,7 +267,7 @@ export default function Dashboard({
                       {isOwner ? "Private" : "Shared with me"}
                     </span>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>

@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query, execute } from "@/lib/db";
+import { sanitizeDocumentContent, validateDocumentTitle } from "@/lib/document-validation";
 import { getDocumentAccess } from "@/lib/permissions";
+
+interface DocumentRecord {
+  id: string;
+  title: string;
+  content: string;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unexpected server error";
+}
 
 // GET /api/documents/[id] - Get details of a single document
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -18,7 +32,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // 2. Fetch the document details
-    const docResult = await query("SELECT * FROM documents WHERE id = ?", [id]);
+    const docResult = await query<DocumentRecord>("SELECT * FROM documents WHERE id = ?", [id]);
     if (!docResult || docResult.length === 0) {
       return NextResponse.json({ error: "Document not found" }, { status: 404 });
     }
@@ -26,7 +40,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const doc = docResult[0];
 
     // 3. Join the owner's username for visual context
-    const ownerResult = await query("SELECT username FROM users WHERE id = ?", [doc.ownerId]);
+    const ownerResult = await query<{ username: string }>("SELECT username FROM users WHERE id = ?", [doc.ownerId]);
     const ownerUsername = ownerResult[0]?.username ?? "unknown";
 
     const responseDoc = {
@@ -36,9 +50,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     };
 
     return NextResponse.json(responseDoc);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API error fetching document details:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch document" }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -63,17 +77,23 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // 2. Parse request body
     const body = await request.json();
-    const { title, content } = body;
+    const { title, content } = body as { title?: unknown; content?: unknown };
 
     // 3. Fetch current values to support partial updates
-    const docResult = await query("SELECT title, content FROM documents WHERE id = ?", [id]);
+    const docResult = await query<Pick<DocumentRecord, "title" | "content">>("SELECT title, content FROM documents WHERE id = ?", [id]);
     if (!docResult || docResult.length === 0) {
       return NextResponse.json({ error: "Document not found" }, { status: 404 });
     }
 
     const currentDoc = docResult[0];
-    const updatedTitle = title !== undefined ? title : currentDoc.title;
-    const updatedContent = content !== undefined ? content : currentDoc.content;
+    let updatedTitle = currentDoc.title;
+    let updatedContent = currentDoc.content;
+    try {
+      if (title !== undefined) updatedTitle = validateDocumentTitle(title);
+      if (content !== undefined) updatedContent = sanitizeDocumentContent(content);
+    } catch (error: unknown) {
+      return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
+    }
     const now = new Date().toISOString();
 
     // 4. Perform the update
@@ -94,9 +114,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         updatedAt: now,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API error updating document:", error);
-    return NextResponse.json({ error: error.message || "Failed to update document" }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -119,8 +139,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     await execute("DELETE FROM documents WHERE id = ?", [id]);
 
     return NextResponse.json({ message: "Document deleted successfully" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API error deleting document:", error);
-    return NextResponse.json({ error: error.message || "Failed to delete document" }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }

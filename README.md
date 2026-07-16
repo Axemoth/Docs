@@ -71,10 +71,12 @@ Authentication is mocked. You can switch between users in the top-right corner o
 
 Axe Docs automatically detects the presence of a PostgreSQL connection string. If you supply a `DATABASE_URL` environment variable, it swaps database drivers and runs migrations in the cloud.
 
-### Step 1: Provision Neon DB (Already Completed)
-We have provisioned a cloud database on Neon. The tables are migrated and seeded.
-* **PostgreSQL Connection String:**
-  `postgresql://neondb_owner:npg_ZERLejS9umB0@ep-purple-flower-a66deeve-pooler.us-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
+### Step 1: Configure Neon DB
+Create a `.env.local` file in the project root with your Neon connection string. This file is ignored by Git.
+```bash
+DATABASE_URL="postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require"
+```
+The tables migrate and seeded evaluation accounts are created automatically on first startup.
 
 ### Step 2: Deploy to Vercel
 1. Initialize a Git repository on your GitHub account.
@@ -82,5 +84,5 @@ We have provisioned a cloud database on Neon. The tables are migrated and seeded
 3. Import the repository into your Vercel Dashboard.
 4. Under **Environment Variables**, add:
    * **Key:** `DATABASE_URL`
-   * **Value:** `postgresql://neondb_owner:npg_ZERLejS9umB0@ep-purple-flower-a66deeve-pooler.us-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
+   * **Value:** Your production Neon `DATABASE_URL` value
 5. Click **Deploy**. Vercel will build the standalone Next.js application, and it will immediately connect to your persistent Postgres cloud database.

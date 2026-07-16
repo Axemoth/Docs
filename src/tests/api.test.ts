@@ -2,9 +2,9 @@ import test from "node:test";
 import assert from "node:assert";
 import { initDb, closeDb } from "../lib/db";
 import { GET as getUsers } from "../app/api/users/route";
-import { GET as getDocs, POST as createDoc } from "../app/api/documents/route";
-import { GET as getDoc, PATCH as updateDoc, DELETE as deleteDoc } from "../app/api/documents/[id]/route";
-import { GET as getShares, POST as createShare, DELETE as deleteShare } from "../app/api/documents/[id]/shares/route";
+import { POST as createDoc } from "../app/api/documents/route";
+import { GET as getDoc, PATCH as updateDoc } from "../app/api/documents/[id]/route";
+import { POST as createShare } from "../app/api/documents/[id]/shares/route";
 import { NextRequest } from "next/server";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -31,7 +31,7 @@ test("Axe Docs API Integration Tests", async (t) => {
     const data = await res.json();
     assert.strictEqual(data.length, 3);
     
-    const rushil = data.find((u: any) => u.username === "rushil");
+    const rushil = data.find((u: { username: string; id: string }) => u.username === "rushil");
     assert.ok(rushil);
     assert.strictEqual(rushil.id, "user_rushil");
   });
@@ -177,8 +177,8 @@ test("Axe Docs API Integration Tests", async (t) => {
   if (fs.existsSync(absolutePath)) {
     try {
       fs.unlinkSync(absolutePath);
-    } catch (err: any) {
-      console.warn("Could not delete test database file:", err.message);
+    } catch (err: unknown) {
+      console.warn("Could not delete test database file:", err instanceof Error ? err.message : err);
     }
   }
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Dashboard from "@/components/Dashboard";
 import Editor from "@/components/Editor";
 import LandingPage from "@/components/LandingPage";
@@ -28,85 +28,72 @@ export default function Home() {
   const [activeDocId, setActiveDocId] = useState<string | null>(null);
   const [view, setView] = useState<"dashboard" | "editor">("dashboard");
   const [loading, setLoading] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  // 1. Load users and theme preference
-  useEffect(() => {
-    // Theme initialization
+  const [feedback, setFeedback] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window === "undefined") return false;
     const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
-      setIsDarkMode(true);
-      document.body.classList.add("dark");
-    } else {
-      setIsDarkMode(false);
-      document.body.classList.remove("dark");
-    }
+    return savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  });
 
-    async function loadInitialData() {
-      try {
-        setLoading(true);
-        // Fetch all seeded users
-        const res = await fetch("/api/users");
-        if (!res.ok) throw new Error("Failed to fetch users");
-        const usersList: User[] = await res.json();
-        setUsers(usersList);
-
-        // Retrieve persisted user session (do NOT auto-login to Alice if missing, showing landing page instead)
-        const storedUserId = localStorage.getItem("current_user_id");
-        const initialUser = usersList.find((u) => u.id === storedUserId) || null;
-
-        if (initialUser) {
-          setCurrentUser(initialUser);
-        }
-      } catch (err) {
-        console.error("Initial load error:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadInitialData();
-  }, []);
-
-  // 2. Reload documents list whenever current user changes
-  useEffect(() => {
-    if (currentUser) {
-      fetchDocuments();
-    } else {
-      setDocuments([]);
-    }
-  }, [currentUser]);
-
-  const fetchDocuments = async () => {
-    if (!currentUser) return;
+  const fetchDocuments = useCallback(async (user: User) => {
     try {
       setLoading(true);
       const res = await fetch("/api/documents", {
         headers: {
-          "x-user-id": currentUser.id,
+          "x-user-id": user.id,
         },
       });
       if (!res.ok) throw new Error("Failed to fetch documents");
-      const docs = await res.json();
+      const docs: DocumentItem[] = await res.json();
       setDocuments(docs);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error fetching documents:", err);
+      setFeedback(err instanceof Error ? err.message : "Could not load documents");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle("dark", isDarkMode);
+    localStorage.setItem("theme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    let active = true;
+    const loadInitialData = async () => {
+      try {
+        const res = await fetch("/api/users");
+        if (!res.ok) throw new Error("Could not load demo accounts");
+        const usersList: User[] = await res.json();
+        if (!active) return;
+        setUsers(usersList);
+        const storedUserId = localStorage.getItem("current_user_id");
+        setCurrentUser(usersList.find((user) => user.id === storedUserId) ?? null);
+      } catch (err: unknown) {
+        if (active) setFeedback(err instanceof Error ? err.message : "Could not load demo accounts");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    void loadInitialData();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      // This starts an async request; state is updated after its response arrives.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void fetchDocuments(currentUser);
+    }
+  }, [currentUser, fetchDocuments]);
 
   // 3. Theme toggle function
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
-    if (newTheme) {
-      document.body.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.body.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
   };
 
   // 4. Session functions
@@ -114,6 +101,8 @@ export default function Home() {
     const user = users.find((u) => u.id === userId);
     if (user) {
       setCurrentUser(user);
+      setDocuments([]);
+      setFeedback("");
       localStorage.setItem("current_user_id", user.id);
       setView("dashboard");
       setActiveDocId(null);
@@ -122,6 +111,7 @@ export default function Home() {
 
   const handleSignOut = () => {
     setCurrentUser(null);
+    setDocuments([]);
     localStorage.removeItem("current_user_id");
     setView("dashboard");
     setActiveDocId(null);
@@ -143,17 +133,25 @@ export default function Home() {
       const newDoc = await res.json();
 
       // Refresh document list and open the new document in the editor
-      await fetchDocuments();
+      await fetchDocuments(currentUser);
       setActiveDocId(newDoc.id);
       setView("editor");
-    } catch (err: any) {
-      alert(err.message || "Failed to create document");
+    } catch (err: unknown) {
+      setFeedback(err instanceof Error ? err.message : "Failed to create document");
     } finally {
       setLoading(false);
     }
   };
 
   // 6. Import document handler
+  const escapeTextAsHtml = (text: string) =>
+    text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
   const handleImportDocument = async (title: string, text: string) => {
     if (!currentUser) return;
     try {
@@ -173,7 +171,7 @@ export default function Home() {
       // Convert plain text into HTML paragraphs
       const htmlContent = text
         .split("\n\n")
-        .map((para) => `<p>${para.replace(/\n/g, "<br/>")}</p>`)
+        .map((para) => `<p>${escapeTextAsHtml(para).replace(/\n/g, "<br/>")}</p>`)
         .join("");
 
       // Update draft with file name and parsed HTML body
@@ -189,14 +187,17 @@ export default function Home() {
         }),
       });
 
-      if (!updateRes.ok) throw new Error("Import failed: Couldn't write contents");
+      if (!updateRes.ok) {
+        const data = await updateRes.json();
+        throw new Error(data.error || "Import failed: Couldn't write contents");
+      }
 
       // Reload list and open the editor
-      await fetchDocuments();
+      await fetchDocuments(currentUser);
       setActiveDocId(draftDoc.id);
       setView("editor");
-    } catch (err: any) {
-      alert(err.message || "Failed to import file");
+    } catch (err: unknown) {
+      setFeedback(err instanceof Error ? err.message : "Failed to import file");
     } finally {
       setLoading(false);
     }
@@ -210,7 +211,7 @@ export default function Home() {
   const handleBackToDashboard = () => {
     setView("dashboard");
     setActiveDocId(null);
-    fetchDocuments(); // Refresh list to get changes
+    if (currentUser) void fetchDocuments(currentUser);
   };
 
   // Return a spinner during the initial app load state
@@ -229,9 +230,11 @@ export default function Home() {
       <header className="sticky top-0 z-40 axe-header border-b backdrop-blur-md shadow-2xs">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           {/* Logo */}
-          <div
+          <button
+            type="button"
             onClick={handleBackToDashboard}
             className="flex items-center gap-2 cursor-pointer select-none group"
+            aria-label="Return to documents dashboard"
           >
             <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-xs group-hover:bg-blue-700 transition-colors">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,7 +249,7 @@ export default function Home() {
             <span className="font-extrabold text-slate-800 dark:text-white text-base tracking-tight transition-colors">
               Axe <span className="text-blue-600 dark:text-blue-455">Docs</span>
             </span>
-          </div>
+          </button>
 
           {/* Right Header Navigation */}
           <div className="flex items-center gap-3">
@@ -255,6 +258,7 @@ export default function Home() {
               onClick={toggleTheme}
               className="p-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl transition-all cursor-pointer text-slate-500 dark:text-slate-400"
               title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
               {isDarkMode ? (
                 // Sun Icon (Dark Mode active)
@@ -276,7 +280,7 @@ export default function Home() {
                   <span className="text-xs font-bold capitalize text-slate-800 dark:text-slate-200">
                     {currentUser.username}
                   </span>
-                  <span className="text-[10px] text-slate-400">{currentUser.email}</span>
+                  <span className="text-[10px] text-slate-400">Demo account · {currentUser.email}</span>
                 </div>
                 {/* Switcher Dropdown */}
                 <select
@@ -284,6 +288,7 @@ export default function Home() {
                   onChange={(e) => handleLogin(e.target.value)}
                   className="px-2.5 py-1.5 border border-slate-200 dark:border-slate-850 rounded-xl bg-white dark:bg-slate-900 text-slate-750 dark:text-slate-250 text-xs font-bold focus:outline-hidden focus:border-blue-500 cursor-pointer capitalize transition-all"
                   title="Switch user session"
+                  aria-label="Switch demo account"
                 >
                   {users.map((u) => (
                     <option key={u.id} value={u.id}>
@@ -301,10 +306,10 @@ export default function Home() {
             ) : (
               // Sign In button: Instantly logs in as Rushil
               <button
-                onClick={() => handleLogin("user_rushil")}
+                onClick={() => document.getElementById("login-portal")?.scrollIntoView({ behavior: "smooth" })}
                 className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
               >
-                Sign In
+                Choose account
               </button>
             )}
           </div>
@@ -313,6 +318,12 @@ export default function Home() {
 
       {/* Main Workspace content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
+        {feedback && (
+          <div role="status" className="mb-5 px-4 py-3 rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/25 text-sm text-blue-800 dark:text-blue-200 flex items-center justify-between gap-4">
+            <span>{feedback}</span>
+            <button type="button" onClick={() => setFeedback("")} className="font-semibold hover:underline" aria-label="Dismiss message">Dismiss</button>
+          </div>
+        )}
         {!currentUser ? (
           <LandingPage users={users} onLogin={handleLogin} />
         ) : view === "dashboard" ? (

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query, execute } from "@/lib/db";
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unexpected server error";
+}
+
 // GET /api/documents - Get all documents owned by or shared with the current user
 export async function GET(request: NextRequest) {
   try {
@@ -23,9 +27,9 @@ export async function GET(request: NextRequest) {
 
     const docs = await query(sql, [userId, userId, userId, userId]);
     return NextResponse.json(docs);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API error fetching documents:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch documents" }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -67,8 +71,8 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(newDoc, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API error creating document:", error);
-    return NextResponse.json({ error: error.message || "Failed to create document" }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }

@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { query, execute } from "@/lib/db";
 import { getDocumentAccess } from "@/lib/permissions";
 
+interface UserRecord {
+  id: string;
+  username: string;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unexpected server error";
+}
+
 // GET /api/documents/[id]/shares - List all active shares for a document (owner only)
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -27,9 +36,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const shares = await query(sharesSql, [id]);
 
     return NextResponse.json(shares);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API error fetching share list:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch share list" }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -50,16 +59,25 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // 2. Parse request body
     const body = await request.json();
-    const { usernameOrEmail, accessLevel: targetAccessLevel } = body;
+    const { usernameOrEmail, accessLevel: targetAccessLevel } = body as {
+      usernameOrEmail?: unknown;
+      accessLevel?: unknown;
+    };
 
-    if (!usernameOrEmail || !targetAccessLevel || !["read", "write"].includes(targetAccessLevel)) {
+    if (
+      typeof usernameOrEmail !== "string" ||
+      !usernameOrEmail.trim() ||
+      typeof targetAccessLevel !== "string" ||
+      !["read", "write"].includes(targetAccessLevel)
+    ) {
       return NextResponse.json({ error: "Bad Request: Missing usernameOrEmail or invalid accessLevel" }, { status: 400 });
     }
 
     // 3. Find the target user in the database
-    const userResult = await query(
+    const normalizedUsernameOrEmail = usernameOrEmail.toLowerCase().trim();
+    const userResult = await query<UserRecord>(
       "SELECT id, username FROM users WHERE username = ? OR email = ?",
-      [usernameOrEmail.toLowerCase().trim(), usernameOrEmail.toLowerCase().trim()]
+      [normalizedUsernameOrEmail, normalizedUsernameOrEmail]
     );
 
     if (!userResult || userResult.length === 0) {
@@ -102,9 +120,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         accessLevel: targetAccessLevel,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API error adding share permission:", error);
-    return NextResponse.json({ error: error.message || "Failed to share document" }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -132,8 +150,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     await execute("DELETE FROM shares WHERE document_id = ? AND user_id = ?", [id, targetUserId]);
 
     return NextResponse.json({ message: "Share permission removed successfully" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API error removing share permission:", error);
-    return NextResponse.json({ error: error.message || "Failed to remove share permission" }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }

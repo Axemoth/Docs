@@ -6,11 +6,15 @@ import * as path from "node:path";
 let sqliteDb: DatabaseSync | null = null;
 let pgPool: Pool | null = null;
 let isPostgres = false;
+let initializationPromise: Promise<void> | null = null;
+
+type DatabaseRow = Record<string, unknown>;
+type DatabaseParameter = string | number | bigint | Uint8Array | null;
 
 // Converts database snake_case keys to JavaScript camelCase keys
-function toCamelCase(row: any): any {
+function toCamelCase(row: DatabaseRow | undefined): DatabaseRow | undefined {
   if (!row) return row;
-  const newRow: any = {};
+  const newRow: DatabaseRow = {};
   for (const key of Object.keys(row)) {
     const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
     newRow[camelKey] = row[key];
@@ -20,7 +24,7 @@ function toCamelCase(row: any): any {
 
 // Initialize database
 export function initDb() {
-  if (sqliteDb || pgPool) return; // Already initialized
+  if (initializationPromise) return;
 
   const dbUrl = process.env.DATABASE_URL;
 
@@ -48,11 +52,11 @@ export function initDb() {
     }
 
     sqliteDb = new DatabaseSync(dbPath);
+    sqliteDb.exec("PRAGMA foreign_keys = ON;");
     console.log(`Database initialized: SQLite Mode (${dbPath})`);
   }
 
-  // Run migrations and seed tables asynchronously
-  runMigrationsAndSeed();
+  initializationPromise = runMigrationsAndSeed();
 }
 
 // Cleanly closes database connection handles
@@ -66,14 +70,15 @@ export function closeDb() {
     pgPool = null;
   }
   isPostgres = false;
+  initializationPromise = null;
 }
 
-// Executes multi-statement SQL scripts (like schema creation)
-export async function exec(sql: string): Promise<void> {
-  if (!sqliteDb && !pgPool) {
-    initDb();
-  }
+async function ensureInitialized() {
+  initDb();
+  await initializationPromise;
+}
 
+async function execRaw(sql: string): Promise<void> {
   if (isPostgres) {
     await pgPool!.query(sql);
   } else {
@@ -81,44 +86,54 @@ export async function exec(sql: string): Promise<void> {
   }
 }
 
-// Executes SELECT queries and returns an array of camelCased objects
-export async function query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-  if (!sqliteDb && !pgPool) {
-    initDb();
-  }
-
+async function queryRaw(sql: string, params: DatabaseParameter[] = []): Promise<DatabaseRow[]> {
   if (isPostgres) {
-    // Convert ? positional placeholders to Postgres $1, $2, etc.
     let index = 1;
     const pgSql = sql.replace(/\?/g, () => `$${index++}`);
     const res = await pgPool!.query(pgSql, params);
-    return res.rows.map(toCamelCase);
-  } else {
-    const stmt = sqliteDb!.prepare(sql);
-    const rows = stmt.all(...params) as any[];
-    return rows.map(toCamelCase);
+    return res.rows.map((row) => toCamelCase(row) ?? {});
   }
+
+  const stmt = sqliteDb!.prepare(sql);
+  const rows = stmt.all(...params) as DatabaseRow[];
+  return rows.map((row) => toCamelCase(row) ?? {});
 }
 
-// Executes INSERT, UPDATE, DELETE queries
-export async function execute(sql: string, params: any[] = []): Promise<{ changes: number; lastInsertId?: string }> {
-  if (!sqliteDb && !pgPool) {
-    initDb();
-  }
-
+async function executeRaw(sql: string, params: DatabaseParameter[] = []): Promise<{ changes: number; lastInsertId?: string }> {
   if (isPostgres) {
     let index = 1;
     const pgSql = sql.replace(/\?/g, () => `$${index++}`);
     const res = await pgPool!.query(pgSql, params);
     return { changes: res.rowCount ?? 0 };
-  } else {
-    const stmt = sqliteDb!.prepare(sql);
-    const result = stmt.run(...params) as any;
-    return {
-      changes: result.changes,
-      lastInsertId: result.lastInsertRowid?.toString(),
-    };
   }
+
+  const stmt = sqliteDb!.prepare(sql);
+  const result = stmt.run(...params) as unknown as {
+    changes: number;
+    lastInsertRowid?: bigint;
+  };
+  return {
+    changes: result.changes,
+    lastInsertId: result.lastInsertRowid?.toString(),
+  };
+}
+
+// Executes multi-statement SQL scripts (like schema creation)
+export async function exec(sql: string): Promise<void> {
+  await ensureInitialized();
+  await execRaw(sql);
+}
+
+// Executes SELECT queries and returns an array of camelCased objects
+export async function query<T = DatabaseRow>(sql: string, params: DatabaseParameter[] = []): Promise<T[]> {
+  await ensureInitialized();
+  return (await queryRaw(sql, params)) as T[];
+}
+
+// Executes INSERT, UPDATE, DELETE queries
+export async function execute(sql: string, params: DatabaseParameter[] = []): Promise<{ changes: number; lastInsertId?: string }> {
+  await ensureInitialized();
+  return executeRaw(sql, params);
 }
 
 // Run schema setup and seed mock users if tables are empty
@@ -152,26 +167,26 @@ async function runMigrationsAndSeed() {
   `;
 
   try {
-    await exec(schema);
+    await execRaw(schema);
     console.log("Database schema verified/created successfully.");
 
     // Seed mock users if the users table is empty
-    const countResult = await query("SELECT COUNT(*) as count FROM users");
+    const countResult = await queryRaw("SELECT COUNT(*) as count FROM users");
     const count = countResult[0]?.count ?? 0;
 
     if (Number(count) === 0) {
       console.log("Database is empty. Seeding mock users (Rushil, Yash, Aditya)...");
-      await execute("INSERT INTO users (id, username, email) VALUES (?, ?, ?)", [
+      await executeRaw("INSERT INTO users (id, username, email) VALUES (?, ?, ?)", [
         "user_rushil",
         "rushil",
         "rushil.gorasia@gmail.com",
       ]);
-      await execute("INSERT INTO users (id, username, email) VALUES (?, ?, ?)", [
+      await executeRaw("INSERT INTO users (id, username, email) VALUES (?, ?, ?)", [
         "user_yash",
         "yash",
         "yash@example.com",
       ]);
-      await execute("INSERT INTO users (id, username, email) VALUES (?, ?, ?)", [
+      await executeRaw("INSERT INTO users (id, username, email) VALUES (?, ?, ?)", [
         "user_aditya",
         "aditya",
         "aditya@example.com",

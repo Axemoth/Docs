@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import ShareModal from "./ShareModal";
 
 interface DocumentDetail {
@@ -27,20 +27,13 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
   const [error, setError] = useState("");
   const [savingStatus, setSavingStatus] = useState<"saved" | "saving" | "error" | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [notice, setNotice] = useState("");
 
   const editorRef = useRef<HTMLDivElement>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 1. Fetch document on mount
-  useEffect(() => {
-    fetchDocument();
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [documentId]);
-
-  const fetchDocument = async () => {
+  const fetchDocument = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -65,13 +58,23 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           editorRef.current.innerHTML = data.content;
         }
       }, 50);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Could not load document");
+      setError(err instanceof Error ? err.message : "Could not load document");
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUserId, documentId]);
+
+  // Fetch the latest permitted version whenever the active document changes.
+  useEffect(() => {
+    // The state update happens after the request settles, not during the effect itself.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchDocument();
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [fetchDocument]);
 
   // 2. Trigger autosave when title or editor content changes
   const triggerAutosave = (updatedTitle: string, updatedContent: string) => {
@@ -128,12 +131,20 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
     handleEditorInput();
   };
 
+  const escapeTextForEditor = (text: string) =>
+    text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
   // Client-side HTML-to-Markdown exporter
   const exportToMarkdown = () => {
     if (!doc) return;
     const html = editorRef.current?.innerHTML || doc.content;
 
-    let markdown = html
+    const markdown = html
       // Headings
       .replace(/<h1>(.*?)<\/h1>/gi, "# $1\n\n")
       .replace(/<h2>(.*?)<\/h2>/gi, "## $1\n\n")
@@ -185,7 +196,11 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
 
     const fileType = file.name.split(".").pop()?.toLowerCase();
     if (fileType !== "txt" && fileType !== "md") {
-      alert("Unsupported file type! Please upload a .txt or .md file.");
+      setNotice("Only .txt and .md files can be imported.");
+      return;
+    }
+    if (file.size > 200_000) {
+      setNotice("Please import a file smaller than 200 KB.");
       return;
     }
 
@@ -197,13 +212,14 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
       // Convert newlines to paragraphs/breaks for editor formatting
       const formattedHtml = text
         .split("\n\n")
-        .map((para) => `<p>${para.replace(/\n/g, "<br/>")}</p>`)
+        .map((para) => `<p>${escapeTextForEditor(para).replace(/\n/g, "<br/>")}</p>`)
         .join("");
 
       if (editorRef.current) {
         // Append at the end of the document
-        editorRef.current.innerHTML += `<br/>${formattedHtml}`;
+        editorRef.current.insertAdjacentHTML("beforeend", `<br/>${formattedHtml}`);
         handleEditorInput();
+        setNotice(`Imported ${file.name}. Changes will save automatically.`);
       }
     };
     reader.readAsText(file);
@@ -229,8 +245,8 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
       }
 
       onBack();
-    } catch (err: any) {
-      alert(err.message || "Failed to delete document");
+    } catch (err: unknown) {
+      setNotice(err instanceof Error ? err.message : "Failed to delete document");
     }
   };
 
@@ -391,6 +407,13 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
         </div>
       )}
 
+      {notice && (
+        <div role="status" className="p-3 bg-blue-50 dark:bg-blue-950/25 text-blue-800 dark:text-blue-300 rounded-xl border border-blue-200/60 dark:border-blue-900/40 text-sm flex items-center justify-between gap-3">
+          <span>{notice}</span>
+          <button onClick={() => setNotice("")} className="text-xs font-semibold hover:underline" aria-label="Dismiss message">Dismiss</button>
+        </div>
+      )}
+
       {/* Editor Toolbar */}
       <div className="flex flex-wrap items-center gap-1.5 p-2 axe-card border rounded-2xl">
         <button
@@ -401,6 +424,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           disabled={isReadOnly}
           className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg font-bold transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
           title="Bold"
+          aria-label="Bold"
         >
           B
         </button>
@@ -412,6 +436,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           disabled={isReadOnly}
           className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg italic transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
           title="Italic"
+          aria-label="Italic"
         >
           I
         </button>
@@ -423,8 +448,24 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           disabled={isReadOnly}
           className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg underline transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
           title="Underline"
+          aria-label="Underline"
         >
           U
+        </button>
+
+        <span className="w-px h-5 bg-slate-200 dark:bg-slate-800 mx-1"></span>
+
+        <button
+          onMouseDown={(e) => {
+            e.preventDefault();
+            handleFormat("removeFormat");
+          }}
+          disabled={isReadOnly}
+          className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+          title="Clear formatting"
+          aria-label="Clear formatting"
+        >
+          Clear
         </button>
 
         <span className="w-px h-5 bg-slate-200 dark:bg-slate-800 mx-1"></span>
@@ -437,6 +478,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           disabled={isReadOnly}
           className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-sm font-semibold transition-colors cursor-pointer"
           title="Heading 1"
+          aria-label="Heading 1"
         >
           H1
         </button>
@@ -448,6 +490,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           disabled={isReadOnly}
           className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-sm font-semibold transition-colors cursor-pointer"
           title="Heading 2"
+          aria-label="Heading 2"
         >
           H2
         </button>
@@ -459,6 +502,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           disabled={isReadOnly}
           className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-sm font-semibold transition-colors cursor-pointer"
           title="Normal Paragraph"
+          aria-label="Normal paragraph"
         >
           Text
         </button>
@@ -473,6 +517,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           disabled={isReadOnly}
           className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
           title="Bullet List"
+          aria-label="Bulleted list"
         >
           • List
         </button>
@@ -484,6 +529,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           disabled={isReadOnly}
           className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg transition-colors cursor-pointer w-9 h-9 flex items-center justify-center"
           title="Numbered List"
+          aria-label="Numbered list"
         >
           1. List
         </button>
@@ -495,6 +541,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           disabled={isReadOnly}
           className="px-3 py-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-transparent rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
           title="Import text/markdown file into current draft"
+          aria-label="Import text or markdown file"
         >
           <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />

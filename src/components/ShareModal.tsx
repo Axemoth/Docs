@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 interface Share {
   id: string;
@@ -32,16 +32,7 @@ export default function ShareModal({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchShares();
-      setError("");
-      setSuccess("");
-      setUsernameOrEmail("");
-    }
-  }, [isOpen, documentId]);
-
-  const fetchShares = async () => {
+  const fetchShares = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/documents/${documentId}/shares`, {
@@ -56,13 +47,21 @@ export default function ShareModal({
 
       const data = await res.json();
       setShares(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError("Could not load sharing settings");
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUserId, documentId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      // The modal data is loaded asynchronously after it becomes visible.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void fetchShares();
+    }
+  }, [fetchShares, isOpen]);
 
   const handleShare = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,8 +93,8 @@ export default function ShareModal({
       setSuccess(`Successfully shared with ${data.share.username}`);
       setUsernameOrEmail("");
       fetchShares(); // Refresh share list
-    } catch (err: any) {
-      setError(err.message || "Failed to share document");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to share document");
     } finally {
       setLoading(false);
     }
@@ -121,8 +120,8 @@ export default function ShareModal({
 
       setSuccess("Access revoked successfully");
       fetchShares(); // Refresh share list
-    } catch (err: any) {
-      setError(err.message || "Failed to revoke access");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to revoke access");
     } finally {
       setLoading(false);
     }
@@ -131,16 +130,17 @@ export default function ShareModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/75 backdrop-blur-xs p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/75 backdrop-blur-xs p-4" role="dialog" aria-modal="true" aria-labelledby="share-dialog-title">
       <div className="w-full max-w-md axe-modal border rounded-2xl shadow-xl overflow-hidden animate-fade-in">
         {/* Header */}
         <div className="px-6 py-4 axe-modal-header border-b flex items-center justify-between">
-          <h3 className="font-semibold axe-text-title text-lg truncate pr-4">
-            Share "{documentTitle}"
+          <h3 id="share-dialog-title" className="font-semibold axe-text-title text-lg truncate pr-4">
+            Share “{documentTitle}”
           </h3>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-655 dark:hover:text-slate-300 transition-colors p-1 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-md"
+            aria-label="Close sharing settings"
           >
             <svg
               className="w-5 h-5"
@@ -160,7 +160,7 @@ export default function ShareModal({
             <label className="block text-sm font-medium axe-text-muted">
               Share with another user (e.g. yash, aditya)
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="text"
                 value={usernameOrEmail}
@@ -173,11 +173,12 @@ export default function ShareModal({
                 value={accessLevel}
                 onChange={(e) => setAccessLevel(e.target.value as "read" | "write")}
                 className="px-2 py-2 border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
+                aria-label="Access level"
               >
                 <option value="read">Can View</option>
                 <option value="write">Can Edit</option>
               </select>
-              <button
+      <button
                 type="submit"
                 disabled={loading}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer"
@@ -240,6 +241,7 @@ export default function ShareModal({
                         onClick={() => handleRevokeShare(share.userId)}
                         className="text-slate-400 hover:text-red-650 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-md cursor-pointer"
                         title="Revoke access"
+                        aria-label={`Revoke access for ${share.username}`}
                       >
                         <svg
                           className="w-4 h-4"
