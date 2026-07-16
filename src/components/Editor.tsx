@@ -128,6 +128,52 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
     handleEditorInput();
   };
 
+  // Client-side HTML-to-Markdown exporter
+  const exportToMarkdown = () => {
+    if (!doc) return;
+    const html = editorRef.current?.innerHTML || doc.content;
+
+    let markdown = html
+      // Headings
+      .replace(/<h1>(.*?)<\/h1>/gi, "# $1\n\n")
+      .replace(/<h2>(.*?)<\/h2>/gi, "## $1\n\n")
+      // Lists
+      .replace(/<ul>([\s\S]*?)<\/ul>/gi, (match, p1) => {
+        return p1.replace(/<li>(.*?)<\/li>/gi, "* $1\n") + "\n";
+      })
+      .replace(/<ol>([\s\S]*?)<\/ol>/gi, (match, p1) => {
+        let index = 1;
+        return p1.replace(/<li>(.*?)<\/li>/gi, () => `${index++}. $1\n`) + "\n";
+      })
+      // Paragraphs & Line Breaks
+      .replace(/<p>(.*?)<\/p>/gi, "$1\n\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      // Formatting tags
+      .replace(/<b>(.*?)<\/b>/gi, "**$1**")
+      .replace(/<strong>(.*?)<\/strong>/gi, "**$1**")
+      .replace(/<i>(.*?)<\/i>/gi, "*$1*")
+      .replace(/<em>(.*?)<\/em>/gi, "*$1*")
+      .replace(/<u>(.*?)<\/u>/gi, "_$1_")
+      // Remove any leftover HTML tags
+      .replace(/<[^>]+>/g, "")
+      // Decode HTML entities
+      .replace(/&nbsp;/g, " ")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&");
+
+    // Download file
+    const blob = new Blob([markdown.trim()], { type: "text/markdown;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${title || "Untitled Document"}.md`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // 4. File import handler
   const handleFileImportClick = () => {
     fileInputRef.current?.click();
@@ -283,6 +329,18 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             accept=".txt,.md"
             className="hidden"
           />
+
+          {/* Export to Markdown Button */}
+          <button
+            onClick={exportToMarkdown}
+            className="px-3.5 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer text-slate-700 dark:text-slate-300"
+            title="Export to Markdown (.md)"
+          >
+            <svg className="w-4.5 h-4.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span className="hidden sm:inline">Export</span>
+          </button>
 
           {doc.accessLevel === "owner" && (
             <>
