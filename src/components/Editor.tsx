@@ -238,39 +238,63 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const fileType = file.name.split(".").pop()?.toLowerCase();
-    if (fileType !== "txt" && fileType !== "md") {
-      setNotice("Only .txt and .md files can be imported.");
+    if (fileType !== "txt" && fileType !== "md" && fileType !== "docx") {
+      setNotice("Only .txt, .md, and .docx files can be imported.");
       return;
     }
-    if (file.size > 200_000) {
-      setNotice("Please import a file smaller than 200 KB.");
+    if (file.size > 500_000) {
+      setNotice("Please import a file smaller than 500 KB.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      if (!text) return;
-
-      // Convert newlines to paragraphs/breaks for editor formatting
-      const formattedHtml = text
-        .split("\n\n")
-        .map((para) => `<p>${escapeTextForEditor(para).replace(/\n/g, "<br/>")}</p>`)
-        .join("");
-
-      if (editorRef.current) {
-        // Append at the end of the document
-        editorRef.current.insertAdjacentHTML("beforeend", `<br/>${formattedHtml}`);
-        handleEditorInput();
-        setNotice(`Imported ${file.name}. Changes will save automatically.`);
+    if (fileType === "docx") {
+      try {
+        const mammoth = await import("mammoth");
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            const arrayBuffer = event.target?.result as ArrayBuffer;
+            const result = await mammoth.convertToHtml({ arrayBuffer });
+            const html = result.value;
+            if (editorRef.current && html) {
+              editorRef.current.insertAdjacentHTML("beforeend", `<br/>${html}`);
+              handleEditorInput();
+              setNotice(`Imported Word document: ${file.name}. Saved automatically.`);
+            }
+          } catch (err) {
+            setNotice("Failed to parse Word document.");
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } catch (err) {
+        setNotice("Failed to load document parser.");
       }
-    };
-    reader.readAsText(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        if (!text) return;
+
+        // Convert newlines to paragraphs/breaks for editor formatting
+        const formattedHtml = text
+          .split("\n\n")
+          .map((para) => `<p>${escapeTextForEditor(para).replace(/\n/g, "<br/>")}</p>`)
+          .join("");
+
+        if (editorRef.current) {
+          // Append at the end of the document
+          editorRef.current.insertAdjacentHTML("beforeend", `<br/>${formattedHtml}`);
+          handleEditorInput();
+          setNotice(`Imported ${file.name}. Changes will save automatically.`);
+        }
+      };
+      reader.readAsText(file);
+    }
 
     // Clear file input value
     e.target.value = "";
@@ -390,7 +414,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept=".txt,.md"
+            accept=".txt,.md,.docx"
             className="hidden"
           />
 

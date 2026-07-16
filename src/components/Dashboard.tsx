@@ -59,18 +59,18 @@ export default function Dashboard({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const fileType = file.name.split(".").pop()?.toLowerCase();
-    if (fileType !== "txt" && fileType !== "md") {
-      setImportMessage("Only .txt and .md files can be imported.");
+    if (fileType !== "txt" && fileType !== "md" && fileType !== "docx") {
+      setImportMessage("Only .txt, .md, and .docx files can be imported.");
       e.target.value = "";
       return;
     }
-    if (file.size > 200_000) {
-      setImportMessage("Please choose a file smaller than 200 KB.");
+    if (file.size > 500_000) {
+      setImportMessage("Please choose a file smaller than 500 KB.");
       e.target.value = "";
       return;
     }
@@ -78,13 +78,33 @@ export default function Dashboard({
     // Get file name without extension
     const title = file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      void onImportDocument(title, text || "");
-    };
-    reader.onerror = () => setImportMessage("The selected file could not be read.");
-    reader.readAsText(file);
+    if (fileType === "docx") {
+      try {
+        const mammoth = await import("mammoth");
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            const arrayBuffer = event.target?.result as ArrayBuffer;
+            const result = await mammoth.convertToHtml({ arrayBuffer });
+            const html = result.value;
+            void onImportDocument(title, html || "");
+          } catch (err) {
+            setImportMessage("Failed to parse Word document.");
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } catch (err) {
+        setImportMessage("Failed to load document parser.");
+      }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        void onImportDocument(title, text || "");
+      };
+      reader.onerror = () => setImportMessage("The selected file could not be read.");
+      reader.readAsText(file);
+    }
 
     // Reset input
     e.target.value = "";
@@ -100,7 +120,7 @@ export default function Dashboard({
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept=".txt,.md"
+            accept=".txt,.md,.docx"
             className="hidden"
           />
           {/* Create Blank Card */}
@@ -133,11 +153,11 @@ export default function Dashboard({
             </div>
             <div className="flex flex-col">
               <span className="font-semibold axe-text-title text-sm">Import File</span>
-              <span className="text-xs axe-text-muted mt-0.5">Upload a .txt or .md file</span>
+              <span className="text-xs axe-text-muted mt-0.5">Upload a .txt, .md, or .docx file</span>
             </div>
           </button>
         </div>
-        <p className="text-xs axe-text-muted">Supports plain text and Markdown files up to 200 KB.</p>
+        <p className="text-xs axe-text-muted">Supports plain text, Markdown, and Word (.docx) files up to 500 KB.</p>
         {importMessage && (
           <div role="status" className="text-sm text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/25 border border-blue-100 dark:border-blue-900/40 rounded-xl px-3 py-2 flex justify-between gap-3">
             <span>{importMessage}</span>
