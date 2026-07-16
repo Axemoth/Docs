@@ -43,6 +43,7 @@ Select any of these users from the switcher in the header to test sharing:
 * **Sharing Control Modal:** Owners can share documents by username (e.g. `yash`, `aditya`) and grant `Can View` (Read-only) or `Can Edit` (Editor) rights. It prevents owners from sharing with themselves and allows revoking access.
 * **Access Control:** The backend API blocks Yash from editing Rushil's document if he is shared as Read-Only. Unauthorized users get an Access Denied (403) screen if they attempt to load the document directly.
 * **File Upload & Import:** Upload `.txt` and `.md` files from the Dashboard (creates a new document with the file name and content) or inside the Editor (appends text directly to the active draft).
+* **Document Exporter (Stretch Feature):** Click "Export" inside the Editor toolbar to dynamically translate active drafts into formatted Markdown (.md) files and download them locally.
 * **Docker:** Containerized setup maps port 3000 and exposes database environment variables.
 * **Automated Integration Tests:** Test suite verifying all 10 endpoints and permission assertions.
 
