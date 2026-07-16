@@ -205,7 +205,7 @@ export default function Home() {
               </svg>
             </div>
             <span className="font-extrabold text-slate-800 text-base tracking-tight">
-              Ajaia <span className="text-blue-600">Docs</span>
+              Axe <span className="text-blue-600">Docs</span>
             </span>
           </div>
 
@@ -260,7 +260,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200/80 py-4 text-center mt-12">
         <span className="text-slate-400 text-xs font-medium">
-          Ajaia Document Workspace • Built with Next.js, React 19 & SQLite
+          Axe Document Workspace • Built with Next.js, React 19 & SQLite
         </span>
       </footer>
     </div>
