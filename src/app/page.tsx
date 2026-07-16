@@ -269,29 +269,39 @@ export default function Home() {
               )}
             </button>
 
-            {/* Profile & Sign Out (If Authenticated) */}
+            {/* Profile, Switcher Dropdown (dropout menu) & Sign Out */}
             {currentUser ? (
               <div className="flex items-center gap-3 pl-2 border-l border-slate-200 dark:border-slate-800">
-                <div className="hidden sm:flex flex-col text-right">
+                <div className="hidden lg:flex flex-col text-right">
                   <span className="text-xs font-bold capitalize text-slate-800 dark:text-slate-200">
                     {currentUser.username}
                   </span>
                   <span className="text-[10px] text-slate-400">{currentUser.email}</span>
                 </div>
+                {/* Switcher Dropdown */}
+                <select
+                  value={currentUser.id}
+                  onChange={(e) => handleLogin(e.target.value)}
+                  className="px-2.5 py-1.5 border border-slate-200 dark:border-slate-850 rounded-xl bg-white dark:bg-slate-900 text-slate-750 dark:text-slate-250 text-xs font-bold focus:outline-hidden focus:border-blue-500 cursor-pointer capitalize transition-all"
+                  title="Switch user session"
+                >
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.username}
+                    </option>
+                  ))}
+                </select>
                 <button
                   onClick={handleSignOut}
-                  className="px-3.5 py-1.5 border border-slate-200 dark:border-slate-800 hover:border-red-200 dark:hover:border-red-950/60 hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-500 hover:text-red-600 dark:text-slate-400 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  className="px-3 py-1.5 border border-slate-200 dark:border-slate-800 hover:border-red-200 dark:hover:border-red-950/60 hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-500 hover:text-red-650 dark:text-slate-400 rounded-xl text-xs font-bold transition-all cursor-pointer"
                 >
                   Sign Out
                 </button>
               </div>
             ) : (
-              // Sign In anchor (If on Landing Page)
+              // Sign In button: Instantly logs in as Rushil
               <button
-                onClick={() => {
-                  const el = document.getElementById("login-portal");
-                  if (el) el.scrollIntoView({ behavior: "smooth" });
-                }}
+                onClick={() => handleLogin("user_rushil")}
                 className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
               >
                 Sign In
