@@ -190,7 +190,7 @@ export default function ShareModal({
 
           {/* Feedback Messages */}
           {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-950/20 text-red-750 dark:text-red-400 rounded-lg text-xs font-medium border border-red-100 dark:border-red-950/40 flex items-center gap-2">
+            <div className="p-3 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 rounded-lg text-xs font-medium border border-red-100 dark:border-red-950/40 flex items-center gap-2">
               <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
@@ -198,7 +198,7 @@ export default function ShareModal({
             </div>
           )}
           {success && (
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/25 text-emerald-750 dark:text-emerald-400 rounded-lg text-xs font-medium border border-emerald-100 dark:border-emerald-950/40 flex items-center gap-2">
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/25 text-emerald-700 dark:text-emerald-400 rounded-lg text-xs font-medium border border-emerald-100 dark:border-emerald-950/40 flex items-center gap-2">
               <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>

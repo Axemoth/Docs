@@ -154,7 +154,7 @@ export default function Dashboard({
               onClick={() => setActiveTab("all")}
               className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === "all"
-                  ? "bg-white dark:bg-slate-850 text-slate-800 dark:text-white shadow-xs"
+                  ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-xs"
                   : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
               }`}
             >
@@ -164,7 +164,7 @@ export default function Dashboard({
               onClick={() => setActiveTab("owned")}
               className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === "owned"
-                  ? "bg-white dark:bg-slate-850 text-slate-800 dark:text-white shadow-xs"
+                  ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-xs"
                   : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
               }`}
             >
@@ -174,7 +174,7 @@ export default function Dashboard({
               onClick={() => setActiveTab("shared")}
               className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === "shared"
-                  ? "bg-white dark:bg-slate-850 text-slate-800 dark:text-white shadow-xs"
+                  ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-xs"
                   : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
               }`}
             >
@@ -215,13 +215,13 @@ export default function Dashboard({
                   type="button"
                   key={doc.id}
                   onClick={() => onOpenDocument(doc.id)}
-                  className="flex flex-col justify-between p-5 axe-card border hover:border-slate-350 dark:hover:border-slate-700 rounded-2xl cursor-pointer group text-left focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  className="flex flex-col justify-between p-5 axe-card border hover:border-slate-300 dark:hover:border-slate-700 rounded-2xl cursor-pointer group text-left focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   aria-label={`Open ${doc.title}`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       {/* Document Icon */}
-                      <div className="w-8 h-8 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-450 rounded-lg flex items-center justify-center">
+                      <div className="w-8 h-8 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center">
                         <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>

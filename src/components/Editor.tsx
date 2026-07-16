@@ -336,7 +336,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-350 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl transition-all cursor-pointer"
+            className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl transition-all cursor-pointer"
             title="Back to Documents"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -398,14 +398,14 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
           <div className="relative">
             <button
               onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
-              className="px-3 py-2 border border-slate-205 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer text-slate-700 dark:text-slate-300"
+              className="px-3 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer text-slate-700 dark:text-slate-300"
               title="Export Document"
             >
               <svg className="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               <span className="hidden sm:inline">Export</span>
-              <svg className="w-3 h-3 text-slate-450 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
@@ -626,8 +626,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
         </button>
       </div>
 
-      {/* Editor Sheet Canvas */}
-      <div className="axe-editor-workspace border border-slate-200/60 dark:border-slate-850 rounded-2xl p-6 md:p-12 overflow-x-auto min-h-[900px] flex justify-center">
+      <div className="axe-editor-workspace border border-slate-200/60 dark:border-slate-800 rounded-2xl p-6 md:p-12 overflow-x-auto min-h-[900px] flex justify-center">
         <div className="w-full max-w-3xl axe-editor-paper border min-h-[850px] p-12 md:p-16 rounded-xs select-text">
           <div
             ref={editorRef}

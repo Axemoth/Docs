@@ -66,7 +66,7 @@ export default function LandingPage({ users, onLogin }: LandingPageProps) {
           </button>
           <a
             href="#features"
-            className="px-6 py-3.5 border border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-2xl text-sm font-bold transition-all"
+            className="px-6 py-3.5 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-2xl text-sm font-bold transition-all"
           >
             Learn More
           </a>
@@ -242,7 +242,7 @@ export default function LandingPage({ users, onLogin }: LandingPageProps) {
                   {user.username.charAt(0)}
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-slate-850 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-450 transition-colors text-sm capitalize">
+                  <span className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm capitalize">
                     {user.username}
                   </span>
                   <span className="text-3xs text-slate-400 dark:text-slate-500 mt-0.5">

@@ -286,7 +286,7 @@ export default function Home() {
                 <select
                   value={currentUser.id}
                   onChange={(e) => handleLogin(e.target.value)}
-                  className="px-2.5 py-1.5 border border-slate-200 dark:border-slate-850 rounded-xl bg-white dark:bg-slate-900 text-slate-750 dark:text-slate-250 text-xs font-bold focus:outline-hidden focus:border-blue-500 cursor-pointer capitalize transition-all"
+                  className="px-2.5 py-1.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-bold focus:outline-hidden focus:border-blue-500 cursor-pointer capitalize transition-all"
                   title="Switch user session"
                   aria-label="Switch demo account"
                 >
