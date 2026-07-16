@@ -158,7 +158,7 @@ export default function ShareModal({
           {/* Share Form */}
           <form onSubmit={handleShare} className="space-y-3">
             <label className="block text-sm font-medium axe-text-muted">
-              Share with another user (e.g. bob, charlie)
+              Share with another user (e.g. yash, aditya)
             </label>
             <div className="flex gap-2">
               <input
