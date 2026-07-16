@@ -1,0 +1,22 @@
+Walkthrough Video URL
+=====================
+
+Please add your walkthrough video URL below after recording:
+
+URL: [ADD YOUR LOOM / YOUTUBE URL HERE]
+
+Suggested recording tool: https://www.loom.com (free, instant shareable link)
+
+Suggested video length: 3-5 minutes
+
+What to show:
+1. Landing page and Sign In
+2. Switching between demo accounts (Rushil, Yash, Aditya)
+3. Creating a new document and using the rich-text toolbar
+4. Importing a .txt, .md, or .docx file
+5. Sharing a document with Yash as "Can View" from Rushil's account
+6. Switching to Yash and confirming read-only mode (no editing possible)
+7. Switching to Rushil and elevating Yash to "Can Edit"
+8. Switching back to Yash and confirming editing is now enabled
+9. Exporting a document as Markdown or Word
+10. Dark mode toggle

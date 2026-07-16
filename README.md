@@ -2,7 +2,7 @@
 
 Axe Docs is a lightweight, high-performance collaborative document editor inspired by Google Docs, built using Next.js, React 19, Tailwind CSS v4, and SQLite/PostgreSQL.
 
-It allows creating documents, formatting text (Bold, Italic, Underline, Headers, Lists), autosaving modifications, uploading and importing text/markdown files, switching sessions (mock auth), and sharing documents (view vs edit permissions) with access control.
+It supports creating documents, rich-text formatting (Bold, Italic, Underline, Headers, Lists), debounced autosave, importing `.txt` / `.md` / `.docx` (Word) files, exporting to Markdown / Word / PDF, switching sessions (mock auth), and sharing documents with viewer/editor access control enforced on both the client and server.
 
 ---
 
@@ -15,16 +15,23 @@ You can run Axe Docs locally using Node.js. It defaults to a zero-configuration 
 * **Package Manager:** npm (installed automatically with Node).
 
 ### Installation & Execution
-1. Install the dependencies:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Axemoth/Docs.git
+   cd Docs
+   ```
+2. Install dependencies:
    ```bash
    npm install
    ```
-2. Start the development server:
+3. Start the development server:
    ```bash
    npm run dev
    ```
-3. Open your browser and navigate to:
+4. Open your browser and navigate to:
    **[http://localhost:3000](http://localhost:3000)**
+
+> No `.env` file is needed for local development. The app automatically uses SQLite.
 
 ---
 
@@ -55,15 +62,19 @@ To execute the tests, run:
 npm test
 ```
 
+Expected output: **10 passing** assertions.
+
 ---
 
-## 4. Seeding & Mock Accounts (Mock Auth)
+## 4. Seeded Mock Accounts (Mock Auth)
 
 Authentication is mocked. You can switch between users in the top-right corner of the header. The application is seeded with the following three accounts:
 
-* **Rushil:** Username: `rushil` | Email: `rushil.gorasia@gmail.com`
-* **Yash:** Username: `yash` | Email: `yash@example.com`
-* **Aditya:** Username: `aditya` | Email: `aditya@example.com`
+| Account | Username | Email |
+|---|---|---|
+| Owner | `rushil` | `rushil.gorasia@gmail.com` |
+| Collaborator | `yash` | `yash@example.com` |
+| Collaborator | `aditya` | `aditya@example.com` |
 
 ---
 
@@ -76,13 +87,12 @@ Create a `.env.local` file in the project root with your Neon connection string.
 ```bash
 DATABASE_URL="postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require"
 ```
-The tables migrate and seeded evaluation accounts are created automatically on first startup.
+The tables and seeded evaluation accounts are created automatically on first startup.
 
 ### Step 2: Deploy to Vercel
-1. Initialize a Git repository on your GitHub account.
-2. Push this project to your repository.
-3. Import the repository into your Vercel Dashboard.
-4. Under **Environment Variables**, add:
+1. Push the project to your GitHub repository.
+2. Import the repository into your Vercel Dashboard.
+3. Under **Environment Variables**, add:
    * **Key:** `DATABASE_URL`
    * **Value:** Your production Neon `DATABASE_URL` value
-5. Click **Deploy**. Vercel will build the standalone Next.js application, and it will immediately connect to your persistent Postgres cloud database.
+4. Click **Deploy**. Vercel will build the standalone Next.js application and connect to your Neon Postgres database automatically.
