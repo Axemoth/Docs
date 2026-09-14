@@ -268,12 +268,12 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
               handleEditorInput();
               setNotice(`Imported Word document: ${file.name}. Saved automatically.`);
             }
-          } catch (err) {
+          } catch {
             setNotice("Failed to parse Word document.");
           }
         };
         reader.readAsArrayBuffer(file);
-      } catch (err) {
+      } catch {
         setNotice("Failed to load document parser.");
       }
     } else {

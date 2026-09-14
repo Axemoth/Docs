@@ -88,12 +88,12 @@ export default function Dashboard({
             const result = await mammoth.convertToHtml({ arrayBuffer });
             const html = result.value;
             void onImportDocument(title, html || "", true);
-          } catch (err) {
+          } catch {
             setImportMessage("Failed to parse Word document.");
           }
         };
         reader.readAsArrayBuffer(file);
-      } catch (err) {
+      } catch {
         setImportMessage("Failed to load document parser.");
       }
     } else {
