@@ -48,3 +48,6 @@ database.db-wal
 *.db-journal
 *.db-wal
 
+# personal notes
+INTERVIEW-PREP.md
+
