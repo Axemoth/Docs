@@ -58,11 +58,17 @@ export default function ShareModal({
 
   useEffect(() => {
     if (isOpen) {
-      // The modal data is loaded asynchronously after it becomes visible.
+      // Reset stale state from previously viewed document — never show old shares for new doc.
+      // These resets are intentional: modal must not flash previous doc's shares.
       // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShares([]);
+      setError("");
+      setSuccess("");
+      setUsernameOrEmail("");
+      // The modal data is loaded asynchronously after it becomes visible.
       void fetchShares();
     }
-  }, [fetchShares, isOpen]);
+  }, [fetchShares, isOpen, documentId]);
 
   const handleShare = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,10 +180,10 @@ export default function ShareModal({
                 value={accessLevel}
                 onChange={(e) => setAccessLevel(e.target.value as "read" | "write")}
                 className="px-2 py-2 border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
-                aria-label="Access level"
+                aria-label="Access level: Viewer can only read, Editor can also edit"
               >
-                <option value="read">Can View</option>
-                <option value="write">Can Edit</option>
+                <option value="read">Viewer — can view</option>
+                <option value="write">Editor — can edit</option>
               </select>
       <button
                 type="submit"

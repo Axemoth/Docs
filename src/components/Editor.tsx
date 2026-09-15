@@ -35,6 +35,10 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchDocument = useCallback(async () => {
+    // Clear previous user's doc immediately — never flash old content for new account.
+    setDoc(null);
+    setTitle("");
+    if (editorRef.current) editorRef.current.innerHTML = "";
     try {
       setLoading(true);
       setError("");
@@ -79,7 +83,9 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
   }, [fetchDocument]);
 
   // 2. Trigger autosave when title or editor content changes
-  const triggerAutosave = (updatedTitle: string, updatedContent: string) => {
+  // Read-only viewers must never trigger a save (server would 403 anyway).
+  const triggerAutosave = (updatedTitle: string, updatedContent: string, role?: string) => {
+    if (role === "read") return;
     setSavingStatus("saving");
 
     if (saveTimeoutRef.current) {
@@ -116,13 +122,15 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
     const newTitle = e.target.value;
     setTitle(newTitle);
     if (doc) {
-      triggerAutosave(newTitle, editorRef.current?.innerHTML || "");
+      if (doc.accessLevel === "read") return;
+      triggerAutosave(newTitle, editorRef.current?.innerHTML || "", doc.accessLevel);
     }
   };
 
   const handleEditorInput = () => {
     if (doc) {
-      triggerAutosave(title, editorRef.current?.innerHTML || "");
+      if (doc.accessLevel === "read") return;
+      triggerAutosave(title, editorRef.current?.innerHTML || "", doc.accessLevel);
     }
   };
 
@@ -378,10 +386,20 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
               className="font-bold axe-text-title text-xl bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-700 focus:border-blue-500 focus:outline-hidden px-1 py-0.5 rounded-sm transition-all max-w-sm"
               placeholder="Enter document title..."
             />
-            <div className="flex items-center gap-1.5 px-1 mt-0.5">
-              <span className="text-2xs axe-text-muted">
-                Owned by <span className="font-semibold axe-text-main">{doc.ownerUsername}</span>
-              </span>
+            <div className="flex items-center gap-1.5 px-1 mt-0.5 flex-wrap">
+              {doc.accessLevel === "owner" ? (
+                <span className="text-2xs axe-text-muted">
+                  <span className="font-semibold axe-text-main">You are the Owner</span> · you can edit, share & delete
+                </span>
+              ) : (
+                <span className="text-2xs axe-text-muted">
+                  Owned by <span className="font-semibold axe-text-main">{doc.ownerUsername}</span>
+                  <span> · You are </span>
+                  <span className="font-semibold axe-text-main">
+                    {doc.accessLevel === "write" ? "Editor (can edit)" : "Viewer (read-only)"}
+                  </span>
+                </span>
+              )}
               <span className="text-slate-300 dark:text-slate-700 text-xs">•</span>
               {savingStatus === "saving" && (
                 <span className="text-2xs text-blue-500 flex items-center gap-1">
@@ -483,15 +501,30 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             </>
           )}
 
+          {doc.accessLevel === "owner" && (
+            <span
+              title="You own this document"
+              className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 rounded-lg text-xs font-semibold uppercase tracking-wider"
+            >
+              Owner
+            </span>
+          )}
+
           {doc.accessLevel === "write" && (
-            <span className="px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 rounded-lg text-xs font-semibold uppercase tracking-wider">
-              Can Edit
+            <span
+              title={`Shared with you as Editor by ${doc.ownerUsername} — you can edit, only owner can share/delete`}
+              className="px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 rounded-lg text-xs font-semibold uppercase tracking-wider"
+            >
+              Editor
             </span>
           )}
 
           {isReadOnly && (
-            <span className="px-3 py-1 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-900/50 rounded-lg text-xs font-semibold uppercase tracking-wider">
-              Read Only
+            <span
+              title={`Shared with you as Viewer by ${doc.ownerUsername} — read-only`}
+              className="px-3 py-1 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-900/50 rounded-lg text-xs font-semibold uppercase tracking-wider"
+            >
+              Viewer
             </span>
           )}
         </div>
@@ -504,7 +537,7 @@ export default function Editor({ documentId, currentUserId, onBack }: EditorProp
             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
           </svg>
           <span className="font-medium">
-            Read-only mode. You can view this document, but edits are disabled.
+            Viewer mode — owned by {doc.ownerUsername}. You can view this document, but edits are disabled. Ask the owner for Editor access to make changes.
           </span>
         </div>
       )}

@@ -15,9 +15,11 @@ export async function GET(request: NextRequest) {
 
     // Select documents owned by user OR shared with user
     // Joins users table to get the owner's username
+    // share_count tells the frontend whether an owned doc is Private (0) or Shared (>0)
     const sql = `
       SELECT d.id, d.title, d.owner_id, d.created_at, d.updated_at, u.username as owner_username,
-             CASE WHEN d.owner_id = ? THEN 'owner' ELSE s.access_level END as access_level
+              CASE WHEN d.owner_id = ? THEN 'owner' ELSE s.access_level END as access_level,
+              (SELECT COUNT(*) FROM shares WHERE document_id = d.id) as share_count
       FROM documents d
       JOIN users u ON d.owner_id = u.id
       LEFT JOIN shares s ON d.id = s.document_id AND s.user_id = ?

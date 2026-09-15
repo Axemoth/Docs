@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Dashboard from "@/components/Dashboard";
 import Editor from "@/components/Editor";
 import LandingPage from "@/components/LandingPage";
@@ -19,6 +19,7 @@ interface DocumentItem {
   updatedAt: string;
   ownerUsername: string;
   accessLevel: "owner" | "write" | "read";
+  shareCount?: number | string;
 }
 
 export default function Home() {
@@ -34,10 +35,16 @@ export default function Home() {
     const savedTheme = localStorage.getItem("theme");
     return savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
   });
+  // Monotonic request id: only the latest fetchDocuments response may update state.
+  // Prevents a slow response for user A overwriting the list after switching to user B.
+  const fetchSeqRef = useRef(0);
 
   const fetchDocuments = useCallback(async (user: User) => {
+    const seq = ++fetchSeqRef.current;
     try {
       setLoading(true);
+      // Clear stale docs immediately so previous user's files never flash for new user.
+      setDocuments([]);
       const res = await fetch("/api/documents", {
         headers: {
           "x-user-id": user.id,
@@ -46,12 +53,15 @@ export default function Home() {
       });
       if (!res.ok) throw new Error("Failed to fetch documents");
       const docs: DocumentItem[] = await res.json();
+      // Ignore outdated responses from a previous account.
+      if (fetchSeqRef.current !== seq) return;
       setDocuments(docs);
     } catch (err: unknown) {
+      if (fetchSeqRef.current !== seq) return;
       console.error("Error fetching documents:", err);
       setFeedback(err instanceof Error ? err.message : "Could not load documents");
     } finally {
-      setLoading(false);
+      if (fetchSeqRef.current === seq) setLoading(false);
     }
   }, []);
 
@@ -101,9 +111,11 @@ export default function Home() {
   const handleLogin = (userId: string) => {
     const user = users.find((u) => u.id === userId);
     if (user) {
+      // Invalidate any in-flight fetch for the previous account.
+      fetchSeqRef.current++;
       setCurrentUser(user);
       setDocuments([]);
-      setFeedback("");
+      setFeedback(`Switched to ${user.username} — showing only docs they own or that are shared with them.`);
       localStorage.setItem("current_user_id", user.id);
       setView("dashboard");
       setActiveDocId(null);
@@ -111,6 +123,8 @@ export default function Home() {
   };
 
   const handleSignOut = () => {
+    // Invalidate in-flight fetches so signed-out view never receives another user's docs.
+    fetchSeqRef.current++;
     setCurrentUser(null);
     setDocuments([]);
     localStorage.removeItem("current_user_id");
@@ -282,7 +296,7 @@ export default function Home() {
               <div className="flex items-center gap-3 pl-2 border-l border-slate-200 dark:border-slate-800">
                 <div className="hidden lg:flex flex-col text-right">
                   <span className="text-xs font-bold capitalize text-slate-800 dark:text-slate-200">
-                    {currentUser.username}
+                    Viewing as {currentUser.username}
                   </span>
                   <span className="text-[10px] text-slate-400">Demo account · {currentUser.email}</span>
                 </div>
@@ -291,12 +305,12 @@ export default function Home() {
                   value={currentUser.id}
                   onChange={(e) => handleLogin(e.target.value)}
                   className="px-2.5 py-1.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-bold focus:outline-hidden focus:border-blue-500 cursor-pointer capitalize transition-all"
-                  title="Switch user session"
+                  title="Switch demo account — list refreshes to show only that account's docs"
                   aria-label="Switch demo account"
                 >
                   {users.map((u) => (
                     <option key={u.id} value={u.id}>
-                      {u.username}
+                      View as {u.username}
                     </option>
                   ))}
                 </select>
@@ -334,6 +348,7 @@ export default function Home() {
           <Dashboard
             documents={documents}
             currentUserId={currentUser.id}
+            currentUsername={currentUser.username}
             onOpenDocument={handleOpenDocument}
             onCreateDocument={handleCreateDocument}
             onImportDocument={handleImportDocument}

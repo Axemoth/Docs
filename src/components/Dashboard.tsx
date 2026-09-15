@@ -10,20 +10,29 @@ interface DocumentItem {
   updatedAt: string;
   ownerUsername: string;
   accessLevel: "owner" | "write" | "read";
+  shareCount?: number | string;
 }
 
 interface DashboardProps {
   documents: DocumentItem[];
   currentUserId: string;
+  currentUsername: string;
   onOpenDocument: (id: string) => void;
   onCreateDocument: () => void;
   onImportDocument: (title: string, content: string, isHtml?: boolean) => Promise<void>;
   loading: boolean;
 }
 
+function getRoleLabel(accessLevel: "owner" | "write" | "read"): "Owner" | "Editor" | "Viewer" {
+  if (accessLevel === "owner") return "Owner";
+  if (accessLevel === "write") return "Editor";
+  return "Viewer";
+}
+
 export default function Dashboard({
   documents,
   currentUserId,
+  currentUsername,
   onOpenDocument,
   onCreateDocument,
   onImportDocument,
@@ -112,6 +121,16 @@ export default function Dashboard({
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Viewing-as context banner — makes account switching explicit */}
+      <div className="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="font-semibold axe-text-title capitalize">Viewing as {currentUsername}</span>
+        <span className="axe-text-muted">·</span>
+        <span className="axe-text-muted">
+          {myDocs.length} owned by you · {sharedDocs.length} shared with you as Editor/Viewer
+        </span>
+        <span className="axe-text-muted">·</span>
+        <span className="axe-text-muted">Only docs you own or that are explicitly shared with you are listed.</span>
+      </div>
       {/* Quick Start Section */}
       <div className="space-y-3">
         <h3 className="text-xs font-semibold axe-text-muted uppercase tracking-wider">Start a new document</h3>
@@ -187,8 +206,9 @@ export default function Dashboard({
                   ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-xs"
                   : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
               }`}
+              title="Documents where you are the Owner"
             >
-              My Docs ({myDocs.length})
+              Owned by me ({myDocs.length})
             </button>
             <button
               onClick={() => setActiveTab("shared")}
@@ -197,8 +217,9 @@ export default function Dashboard({
                   ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-xs"
                   : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
               }`}
+              title="Documents others shared with you as Editor or Viewer"
             >
-              Shared ({sharedDocs.length})
+              Shared with me ({sharedDocs.length})
             </button>
           </div>
         </div>
@@ -229,6 +250,13 @@ export default function Dashboard({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredDocs.map((doc) => {
               const isOwner = doc.ownerId === currentUserId;
+              const roleLabel = getRoleLabel(doc.accessLevel);
+              const shareCount = Number(doc.shareCount ?? 0);
+              const sharingNote = isOwner
+                ? shareCount > 0
+                  ? `Shared with ${shareCount} ${shareCount === 1 ? "person" : "people"}`
+                  : "Private — only you"
+                : `Owner: ${doc.ownerUsername} · You are ${roleLabel}`;
 
               return (
                 <button
@@ -236,7 +264,7 @@ export default function Dashboard({
                   key={doc.id}
                   onClick={() => onOpenDocument(doc.id)}
                   className="flex flex-col justify-between p-5 axe-card border hover:border-slate-300 dark:hover:border-slate-700 rounded-2xl cursor-pointer group text-left focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                  aria-label={`Open ${doc.title}`}
+                  aria-label={`Open ${doc.title} — ${roleLabel}, ${sharingNote}`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -247,8 +275,15 @@ export default function Dashboard({
                         </svg>
                       </div>
 
-                      {/* Access Badge */}
+                      {/* Access Badge — single source of truth: Owner / Editor / Viewer */}
                       <span
+                        title={
+                          doc.accessLevel === "owner"
+                            ? "You own this document — you can edit, share, and delete it"
+                            : doc.accessLevel === "write"
+                            ? `Shared with you as Editor — you can edit, but only ${doc.ownerUsername} can share/delete`
+                            : `Shared with you as Viewer — read-only, owned by ${doc.ownerUsername}`
+                        }
                         className={`px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider ${
                           doc.accessLevel === "owner"
                             ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50"
@@ -257,7 +292,7 @@ export default function Dashboard({
                             : "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 border border-teal-100 dark:border-teal-900/50"
                         }`}
                       >
-                        {doc.accessLevel === "owner" ? "Owner" : doc.accessLevel === "write" ? "Editor" : "Viewer"}
+                        {roleLabel}
                       </span>
                     </div>
 
@@ -278,14 +313,12 @@ export default function Dashboard({
                         {doc.ownerUsername.charAt(0)}
                       </div>
                       <span className="text-3xs axe-text-muted">
-                        {isOwner ? "You" : doc.ownerUsername}
+                        {isOwner ? "Owned by you" : `Owned by ${doc.ownerUsername}`}
                       </span>
                     </div>
 
-                    {/* Shared Info */}
-                    <span className="text-3xs axe-text-muted">
-                      {isOwner ? "Private" : "Shared with me"}
-                    </span>
+                    {/* Sharing status — never claims Private when shared */}
+                    <span className="text-3xs axe-text-muted text-right">{sharingNote}</span>
                   </div>
                 </button>
               );

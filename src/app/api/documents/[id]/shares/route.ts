@@ -73,10 +73,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Bad Request: Missing usernameOrEmail or invalid accessLevel" }, { status: 400 });
     }
 
-    // 3. Find the target user in the database
+    // 3. Find the target user in the database (case-insensitive for username/email)
     const normalizedUsernameOrEmail = usernameOrEmail.toLowerCase().trim();
     const userResult = await query<UserRecord>(
-      "SELECT id, username FROM users WHERE username = ? OR email = ?",
+      "SELECT id, username FROM users WHERE LOWER(username) = ? OR LOWER(email) = ?",
       [normalizedUsernameOrEmail, normalizedUsernameOrEmail]
     );
 
